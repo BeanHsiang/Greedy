@@ -65,7 +65,7 @@ namespace Greedy.Toolkit.Sql
                 InitMemberMappers(type);
 
                 var tableAttr = type.GetCustomAttribute<TableAttribute>();
-
+                this.TableName = tableAttr == null ? this.Name : tableAttr.Name;
                 if (!this.AllMembers.Any(m => m.IsKey))
                 {
                     var id = this.AllMembers.SingleOrDefault(m => m.Name.Equals("id", StringComparison.OrdinalIgnoreCase));

@@ -3,6 +3,7 @@ using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Transactions;
 
 namespace Greedy.TestConsole
 {
@@ -29,17 +30,25 @@ namespace Greedy.TestConsole
             dic2.Add("Name", "李四");
             //Console.WriteLine(dic.GetType());
             //Console.WriteLine(dic2.GetHashCode());
-            cnn.Insert<Person>(dic);
-            cnn.Insert<Person>(dic2);
-            var obj = new { Name = "ddd", Age = 34 };
-            var id = cnn.InsertWithIdentity<Person>(obj);
-            Console.WriteLine(id);
-            cnn.Update<Person>(new { Id = id, Address = "就是这里" });
+            //var tran = new CommittableTransaction();
+            //cnn.Open();
+            //cnn.Insert<Person>(dic);
+            //cnn.Insert<Person>(dic2);
+            //cnn.EnlistTransaction(tran);
+            var obj = new { Name = "ddd1", Age = DateTime.Now.Minute };
+            //var id = cnn.InsertWithIdentity<Person>(obj);
+            //Console.WriteLine(id);
+            //cnn.Update<Person>(new { Id = id, Address = "就是那里" });
+            cnn.Delete<Person>(p => p.Address == "ad" || (p.Age >= 19 && p.Age < 30));
+            cnn.Close();
+            //tran.Commit();
             //var obj2 = new { NAme = "ddd", AgE = 34 };
             //var obj3 = new { Age = 34, Name = "ddd" };
             //Console.WriteLine(obj.GetType().Name);
             //Console.WriteLine(obj2.GetType().Name);
             //Console.WriteLine(obj3.GetType().Name);
+
+
         }
 
     }

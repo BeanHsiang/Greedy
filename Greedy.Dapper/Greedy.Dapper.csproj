@@ -42,6 +42,15 @@
     <Compile Include="..\..\dapper-dot-net\Dapper NET40\SqlMapper.cs">
       <Link>SqlMapper.cs</Link>
     </Compile>
+    <Compile Include="..\Greedy.Toolkit\Expressions\ExpressionContext.cs">
+      <Link>Expressions\ExpressionContext.cs</Link>
+    </Compile>
+    <Compile Include="..\Greedy.Toolkit\Expressions\ExpressionHandleOption.cs">
+      <Link>Expressions\ExpressionHandleOption.cs</Link>
+    </Compile>
+    <Compile Include="..\Greedy.Toolkit\Expressions\ExpressionHandler.cs">
+      <Link>Expressions\ExpressionHandler.cs</Link>
+    </Compile>
     <Compile Include="..\Greedy.Toolkit\Sql\ColumnAttribute.cs">
       <Link>Sql\ColumnAttribute.cs</Link>
     </Compile>

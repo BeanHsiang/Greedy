@@ -40,6 +40,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Class1.cs" />
+    <Compile Include="Expressions\ExpressionContext.cs" />
+    <Compile Include="Expressions\ExpressionHandleOption.cs" />
+    <Compile Include="Expressions\ExpressionHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sql\ColumnAttribute.cs" />
     <Compile Include="Sql\KeyAttribute.cs" />

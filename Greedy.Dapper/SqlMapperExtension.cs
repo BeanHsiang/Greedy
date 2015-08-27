@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -34,6 +35,18 @@ namespace Greedy.Dapper
         public static int Update<T>(this IDbConnection cnn, object param, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             return cnn.Execute(GetTypeHandler(cnn).GetUpdateSql<T>(param), param, transaction, commandTimeout, commandType);
+        }
+
+        public static int Delete<T>(this IDbConnection cnn, Expression<Func<T, bool>> expression, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null)
+        {
+            IDictionary<string, dynamic> parameters;
+            var sql = GetTypeHandler(cnn).GetDeleteSql<T>(expression, out parameters);
+#if DEBUG
+            System.Diagnostics.Debug.WriteLine(sql);
+            return 0;
+#else
+            return cnn.Execute(sql, parameters, transaction, commandTimeout, commandType);
+#endif
         }
     }
 }

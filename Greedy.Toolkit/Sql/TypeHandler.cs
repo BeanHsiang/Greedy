@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Greedy.Toolkit.Expressions;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
@@ -89,7 +91,26 @@ namespace Greedy.Toolkit.Sql
             return sql;
         }
 
-        private TypeMapper RebuildMapper(ITypeMapper source, ITypeMapper target)
+        public string GetDeleteSql<T>(Expression<Func<T, bool>> expression, out IDictionary<string, dynamic> param)
+        {
+            var expressionHandler = new ExpressionHandler(this, new ExpressionHandleOption());
+            var targetMapper = GetTypeMapper(typeof(T));
+            var whereSql = GetWhereSql(expression, expressionHandler, out param);
+            if (expressionHandler.Option.UseAlias)
+            {
+                return SqlGenerator.GetDeleteSql(targetMapper, expressionHandler.Context.GetAlias(targetMapper), whereSql);
+            }
+            return SqlGenerator.GetDeleteSql(targetMapper, whereSql);
+        }
+
+        public string GetWhereSql<T>(Expression<Func<T, bool>> expression, ExpressionHandler expressionHandler, out IDictionary<string, dynamic> param)
+        {
+            var sql = expressionHandler.GetSql(expression);
+            param = expressionHandler.Context.Parameters;
+            return sql;
+        }
+
+        internal TypeMapper RebuildMapper(ITypeMapper source, ITypeMapper target)
         {
             var mapper = new TypeMapper()
             {
@@ -100,7 +121,7 @@ namespace Greedy.Toolkit.Sql
             return mapper;
         }
 
-        private ITypeMapper GetTypeMapper(object obj)
+        internal ITypeMapper GetTypeMapper(object obj)
         {
             var type = obj is Type ? (obj as Type) : obj.GetType();
             if (typeMapperCache.ContainsKey(type.TypeHandle.Value))
