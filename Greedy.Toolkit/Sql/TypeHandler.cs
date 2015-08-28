@@ -91,11 +91,22 @@ namespace Greedy.Toolkit.Sql
             return sql;
         }
 
+        public string GetUpdateSql<T>(Expression<Func<T, bool>> expression, IEnumerable<Expression<Action<T>>> paramInput, out  IDictionary<string, dynamic> paramOuput)
+        {
+            var expressionHandler = new ExpressionHandler(new ExpressionContext(this), new ExpressionHandleOption());
+            var targetMapper = GetTypeMapper(typeof(T));
+            var whereSql = GetWhereSql(expression, expressionHandler);
+            var setSql = GetSetSql(paramInput, expressionHandler);
+            paramOuput = expressionHandler.Context.Parameters;
+            return SqlGenerator.GetUpdateSql(targetMapper, setSql, whereSql);
+        }
+
         public string GetDeleteSql<T>(Expression<Func<T, bool>> expression, out IDictionary<string, dynamic> param)
         {
-            var expressionHandler = new ExpressionHandler(this, new ExpressionHandleOption());
+            var expressionHandler = new ExpressionHandler(new ExpressionContext(this), new ExpressionHandleOption());
             var targetMapper = GetTypeMapper(typeof(T));
-            var whereSql = GetWhereSql(expression, expressionHandler, out param);
+            var whereSql = GetWhereSql(expression, expressionHandler);
+            param = expressionHandler.Context.Parameters;
             if (expressionHandler.Option.UseAlias)
             {
                 return SqlGenerator.GetDeleteSql(targetMapper, expressionHandler.Context.GetAlias(targetMapper), whereSql);
@@ -103,11 +114,14 @@ namespace Greedy.Toolkit.Sql
             return SqlGenerator.GetDeleteSql(targetMapper, whereSql);
         }
 
-        public string GetWhereSql<T>(Expression<Func<T, bool>> expression, ExpressionHandler expressionHandler, out IDictionary<string, dynamic> param)
+        public string GetSetSql<T>(IEnumerable<Expression<Action<T>>> expressions, ExpressionHandler expressionHandler)
         {
-            var sql = expressionHandler.GetSql(expression);
-            param = expressionHandler.Context.Parameters;
-            return sql;
+            return expressionHandler.GetSql(expressions);
+        }
+
+        public string GetWhereSql<T>(Expression<Func<T, bool>> expression, ExpressionHandler expressionHandler)
+        {
+            return expressionHandler.GetSql(expression);
         }
 
         internal TypeMapper RebuildMapper(ITypeMapper source, ITypeMapper target)

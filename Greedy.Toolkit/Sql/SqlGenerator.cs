@@ -39,9 +39,14 @@ namespace Greedy.Toolkit.Sql
 
         public string GetUpdateSql(ITypeMapper mapper)
         {
+            return GetUpdateSql(mapper, GetConditionSql(mapper.AllMembers.Except(mapper.GetKeyMembers(true))), GetConditionSql(mapper.GetKeyMembers(true)));
+        }
+
+        public string GetUpdateSql(ITypeMapper mapper, string setSql, string whereSql)
+        {
             var sb = new StringBuilder();
             //.Where(m => !m.IsIdentity) 非主键不允许有自增长列 
-            sb.AppendFormat("Update {0} Set {1} Where {2}", DecorateName(mapper.TableName), GetConditionSql(mapper.AllMembers.Except(mapper.GetKeyMembers(true))), GetConditionSql(mapper.GetKeyMembers(true)));
+            sb.AppendFormat("Update {0} Set {1} Where {2}", DecorateName(mapper.TableName), setSql, whereSql);
             return sb.ToString();
         }
 

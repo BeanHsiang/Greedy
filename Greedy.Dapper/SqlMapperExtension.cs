@@ -37,6 +37,13 @@ namespace Greedy.Dapper
             return cnn.Execute(GetTypeHandler(cnn).GetUpdateSql<T>(param), param, transaction, commandTimeout, commandType);
         }
 
+        public static int Update<T>(this IDbConnection cnn, Expression<Func<T, bool>> expression, IEnumerable<Expression<Action<T>>> param, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null)
+        {
+            IDictionary<string, dynamic> parameters;
+            var sql = GetTypeHandler(cnn).GetUpdateSql<T>(expression, param, out parameters);
+            return cnn.Execute(sql, parameters, transaction, commandTimeout, commandType);
+        }
+
         public static int Delete<T>(this IDbConnection cnn, Expression<Func<T, bool>> expression, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             IDictionary<string, dynamic> parameters;
