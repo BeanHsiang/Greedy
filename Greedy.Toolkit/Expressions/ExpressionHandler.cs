@@ -15,7 +15,7 @@ namespace Greedy.Toolkit.Expressions
 
         internal ExpressionHandler(ExpressionContext context, ExpressionHandleOption option)
         {
-            TypeHandler = Context.TypeHandler;
+            TypeHandler = context.TypeHandler;
             Option = option;
             Context = context;
         }
@@ -38,6 +38,10 @@ namespace Greedy.Toolkit.Expressions
             {
                 return GetSql(expression as MemberExpression);
             }
+            else if (expression is UnaryExpression)
+            {
+                return GetSql(expression as UnaryExpression);
+            }
             return string.Empty;
         }
 
@@ -55,6 +59,11 @@ namespace Greedy.Toolkit.Expressions
         public string GetSql(ConstantExpression expression)
         {
             return Context.AddParameter(null, expression.Value);
+        }
+
+        public string GetSql(UnaryExpression expression)
+        {
+            return GetSql(expression.Operand);
         }
 
         public void InitParameters(IEnumerable<ParameterExpression> expressions)
@@ -84,11 +93,11 @@ namespace Greedy.Toolkit.Expressions
         {
             if (expression.NodeType == ExpressionType.AndAlso)
             {
-                return string.Format("{0} and {1} ", GetSql(expression.Left), GetSql(expression.Right));
+                return string.Format("({0}) and ({1}) ", GetSql(expression.Left), GetSql(expression.Right));
             }
             else if (expression.NodeType == ExpressionType.OrElse)
             {
-                return string.Format("{0} or {1} ", GetSql(expression.Left), GetSql(expression.Right));
+                return string.Format("({0}) or ({1}) ", GetSql(expression.Left), GetSql(expression.Right));
             }
             else if (expression.NodeType == ExpressionType.Equal)
             {

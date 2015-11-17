@@ -35,7 +35,7 @@ namespace Greedy.Toolkit.Sql
             }
             string sql = string.Empty;
 
-            if (obj is T)
+            if (obj is T || obj is IEnumerable<T>)
             {
                 sql = SqlGenerator.GetInsertSql(targetMapper);
             }
@@ -91,12 +91,26 @@ namespace Greedy.Toolkit.Sql
             return sql;
         }
 
-        public string GetUpdateSql<T>(Expression<Func<T, bool>> expression, IEnumerable<Expression<Action<T>>> paramInput, out  IDictionary<string, dynamic> paramOuput)
+        public string GetUpdateSql<T>(Expression<Func<T, bool>> expression, IDictionary<Expression<Func<T, object>>, object> paramInput, out  IDictionary<string, dynamic> paramOuput)
         {
             var expressionHandler = new ExpressionHandler(new ExpressionContext(this), new ExpressionHandleOption());
             var targetMapper = GetTypeMapper(typeof(T));
             var whereSql = GetWhereSql(expression, expressionHandler);
-            var setSql = GetSetSql(paramInput, expressionHandler);
+            var setSql = new StringBuilder();
+            foreach (KeyValuePair<Expression<Func<T, object>>, object> item in paramInput)
+            {
+                setSql.AppendFormat("{0} = {1},", GetSetSql(item.Key, expressionHandler), expressionHandler.Context.AddParameter(null, item.Value));
+            }
+            paramOuput = expressionHandler.Context.Parameters;
+            return SqlGenerator.GetUpdateSql(targetMapper, setSql.Remove(setSql.Length - 1, 1).ToString(), whereSql);
+        }
+
+        public string GetUpdateSql<T>(Expression<Func<T, bool>> expression, Expression<Func<T, object>> paramInput, object value, out  IDictionary<string, dynamic> paramOuput)
+        {
+            var expressionHandler = new ExpressionHandler(new ExpressionContext(this), new ExpressionHandleOption());
+            var targetMapper = GetTypeMapper(typeof(T));
+            var whereSql = GetWhereSql(expression, expressionHandler);
+            var setSql = string.Format("{0} = {1}", GetSetSql(paramInput, expressionHandler), expressionHandler.Context.AddParameter(null, value));
             paramOuput = expressionHandler.Context.Parameters;
             return SqlGenerator.GetUpdateSql(targetMapper, setSql, whereSql);
         }
@@ -114,7 +128,7 @@ namespace Greedy.Toolkit.Sql
             return SqlGenerator.GetDeleteSql(targetMapper, whereSql);
         }
 
-        public string GetSetSql<T>(IEnumerable<Expression<Action<T>>> expressions, ExpressionHandler expressionHandler)
+        public string GetSetSql<T>(Expression<Func<T, object>> expressions, ExpressionHandler expressionHandler)
         {
             return expressionHandler.GetSql(expressions);
         }

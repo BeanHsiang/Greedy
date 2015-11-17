@@ -39,6 +39,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BackgroundService\BackgroundServiceConfig.cs" />
+    <Compile Include="BackgroundService\IBackgroundTask.cs" />
     <Compile Include="Class1.cs" />
     <Compile Include="Expressions\ExpressionContext.cs" />
     <Compile Include="Expressions\ExpressionHandleOption.cs" />
