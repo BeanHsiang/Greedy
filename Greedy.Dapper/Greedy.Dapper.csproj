@@ -39,9 +39,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\dapper-dot-net\Dapper NET40\SqlMapper.cs">
-      <Link>SqlMapper.cs</Link>
-    </Compile>
     <Compile Include="..\Greedy.Toolkit\Expressions\ExpressionContext.cs">
       <Link>Expressions\ExpressionContext.cs</Link>
     </Compile>
@@ -79,6 +76,7 @@
       <Link>Sql\TypeMapper.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SqlMapper.cs" />
     <Compile Include="SqlMapperExtension.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
