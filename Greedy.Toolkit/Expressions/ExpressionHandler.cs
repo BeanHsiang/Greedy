@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 
 namespace Greedy.Toolkit.Expressions
@@ -42,6 +43,22 @@ namespace Greedy.Toolkit.Expressions
             {
                 return GetSql(expression as UnaryExpression);
             }
+            else if (expression is MethodCallExpression)
+            {
+                return GetSql(expression as MethodCallExpression);
+            }
+            else if (expression is NewArrayExpression)
+            {
+                return GetSql(expression as NewArrayExpression);
+            }
+            else if (expression is NewExpression)
+            {
+                return GetSql(expression as NewExpression);
+            }
+            else if (expression is ParameterExpression)
+            {
+                return GetSql(expression as ParameterExpression);
+            }
             return string.Empty;
         }
 
@@ -61,6 +78,28 @@ namespace Greedy.Toolkit.Expressions
             return Context.AddParameter(null, expression.Value);
         }
 
+        public string GetSql(ConstantExpression expression, MemberInfo memberInfo)
+        {
+            return Context.AddParameter(null, expression.Value);
+        }
+
+        public string GetSql(NewExpression expression)
+        {
+            if (expression.Arguments.Count == 1)
+                return GetSql(expression.Arguments[0]);
+            return null;
+        }
+
+        public string GetSql(NewArrayExpression expression)
+        {
+            var sb = new StringBuilder();
+            sb.Append("(");
+            sb = expression.Expressions.Aggregate(sb, (s, e) => s.AppendFormat("{0},", GetSql(e)));
+            sb.Remove(sb.Length - 1, 1);
+            sb.Append(")");
+            return sb.ToString();
+        }
+
         public string GetSql(UnaryExpression expression)
         {
             return GetSql(expression.Operand);
@@ -74,10 +113,10 @@ namespace Greedy.Toolkit.Expressions
             }
         }
 
-        public string GetSql(MemberExpression expression)
+        public string GetSql(ParameterExpression expression, MemberInfo memberInfo)
         {
-            var typeMapper = TypeHandler.GetTypeMapper(expression.Expression.Type);
-            var columnMapper = typeMapper.AllMembers.SingleOrDefault(m => m.Name == expression.Member.Name);
+            var typeMapper = TypeHandler.GetTypeMapper(expression.Type);
+            var columnMapper = typeMapper.AllMembers.SingleOrDefault(m => m.Name == memberInfo.Name);
             if (Option.UseAlias)
             {
                 return string.Format("{0}.{1}", Context.GetAlias(typeMapper), TypeHandler.SqlGenerator.DecorateName(columnMapper.ColumnName));
@@ -86,7 +125,88 @@ namespace Greedy.Toolkit.Expressions
             {
                 return TypeHandler.SqlGenerator.DecorateName(columnMapper.ColumnName);
             }
+        }
 
+        public object GetObject(Expression expression)
+        {
+            if (expression.NodeType == ExpressionType.Constant)
+            {
+                return (expression as ConstantExpression).Value;
+            }
+            else if (expression.NodeType == ExpressionType.MemberAccess)
+            {
+                var exp = expression as MemberExpression;
+                var r = exp.Member.DeclaringType.GetField(exp.Member.Name).GetValue(GetObject(exp.Expression));
+                return r;
+            }
+            return "";
+        }
+
+        public string GetSql(MemberExpression expression)
+        {
+            if (expression.Expression.NodeType == ExpressionType.Parameter)
+            {
+                return GetSql(expression.Expression as ParameterExpression, expression.Member);
+            }
+            else
+            {
+                var obj = GetObject(expression.Expression);
+                object r = null;
+                var field = obj.GetType().GetField(expression.Member.Name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                if (field == null)
+                {
+                    var property = obj.GetType().GetProperty(expression.Member.Name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                    r = property.GetValue(obj);
+                }
+                else
+                    r = field.GetValue(obj);
+                return Context.AddParameter(null, r);
+            }
+
+        }
+
+        public string GetSql(MethodCallExpression expression)
+        {
+            if (expression.Method.Name == "Contains")
+            {
+                Expression arg0, arg1;
+                if (expression.Object == null)
+                {
+                    arg0 = expression.Arguments[0];
+                    arg1 = expression.Arguments[1];
+                }
+                else
+                {
+                    arg0 = expression.Object;
+                    arg1 = expression.Arguments[0];
+                }
+
+                if (arg1.NodeType == ExpressionType.MemberAccess)
+                {
+                    return string.Format("{0} in {1}", GetSql(arg1), GetSql(arg0));
+                }
+                else
+                {
+                    return string.Format("{0} like {1}", GetSql(expression.Object), Context.AddParameter(null, "%" + (expression.Arguments[0] as ConstantExpression).Value + "%"));
+                }
+            }
+            if (expression.Method.Name == "Equals")
+            {
+                Expression arg0, arg1;
+                if (expression.Object == null)
+                {
+                    arg0 = expression.Arguments[0];
+                    arg1 = expression.Arguments[1];
+                }
+                else
+                {
+                    arg0 = expression.Object;
+                    arg1 = expression.Arguments[0];
+                }
+
+                return string.Format("{0} = {1}", GetSql(arg0), GetSql(arg1));
+            }
+            return string.Empty;
         }
 
         public string GetSql(BinaryExpression expression)

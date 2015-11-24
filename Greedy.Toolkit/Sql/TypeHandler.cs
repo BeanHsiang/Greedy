@@ -47,6 +47,25 @@ namespace Greedy.Toolkit.Sql
             return sql;
         }
 
+        public string GetSelectSql<T>()
+        {
+            var targetMapper = GetTypeMapper(typeof(T));
+            return SqlGenerator.GetSelectSql(targetMapper);
+        }
+
+        public string GetFetchSql<T>(Expression<Func<T, bool>> expression, out IDictionary<string, dynamic> param)
+        {
+            var expressionHandler = new ExpressionHandler(new ExpressionContext(this), new ExpressionHandleOption());
+            var targetMapper = GetTypeMapper(typeof(T));
+            var whereSql = GetWhereSql(expression, expressionHandler);
+            param = expressionHandler.Context.Parameters;
+            if (expressionHandler.Option.UseAlias)
+            {
+                return SqlGenerator.GetFetchSql(targetMapper, expressionHandler.Context.GetAlias(targetMapper), whereSql);
+            }
+            return SqlGenerator.GetFetchSql(targetMapper, whereSql);
+        }
+
         public string GetInsertSqlWithIdentity<T>(object obj)
         {
             var targetMapper = GetTypeMapper(typeof(T));

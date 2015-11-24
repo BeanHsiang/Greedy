@@ -63,9 +63,16 @@ namespace Greedy.Dapper
 #endif
         }
 
+        public static IEnumerable<T> Get<T>(this IDbConnection cnn, Expression<Func<T, bool>> expression, IDbTransaction transaction = null, bool buffered = true, int? commandTimeout = null, CommandType? commandType = null)
+        {
+            IDictionary<string, dynamic> parameters;
+            var sql = GetTypeHandler(cnn).GetFetchSql<T>(expression, out parameters);
+            return cnn.Query<T>(sql, parameters, transaction, buffered, commandTimeout, commandType);
+        }
+
         public static IEnumerable<T> Predicate<T>(this IDbConnection cnn, IDbTransaction transaction = null, bool buffered = true, int? commandTimeout = null, CommandType? commandType = null)
         {
-            return cnn.Query<T>(GetTypeHandler(cnn).GetInsertSql<T>(typeof(T)), null, transaction, buffered, commandTimeout, commandType);
+            return cnn.Query<T>(GetTypeHandler(cnn).GetSelectSql<T>(), null, transaction, buffered, commandTimeout, commandType);
         }
     }
 }

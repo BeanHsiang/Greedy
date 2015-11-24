@@ -50,6 +50,21 @@ namespace Greedy.Toolkit.Sql
             return sb.ToString();
         }
 
+        public string GetSelectSql(ITypeMapper mapper)
+        {
+            return string.Format("Select * From {0}", DecorateName(mapper.TableName));
+        }
+
+        public string GetFetchSql(ITypeMapper mapper, string whereSql)
+        {
+            return string.Format("Select * From {0} Where {1}", DecorateName(mapper.TableName), whereSql);
+        }
+
+        public string GetFetchSql(ITypeMapper mapper, string alias, string whereSql)
+        {
+            return string.Format("Select * From {0} Where {1}", DecorateName(mapper.TableName, alias), whereSql);
+        }
+
         public string GetDeleteSql(ITypeMapper mapper, string whereSql)
         {
             return string.Format("Delete {0} Where {1}", DecorateName(mapper.TableName), whereSql);

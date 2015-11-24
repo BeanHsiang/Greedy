@@ -27,10 +27,25 @@ namespace Greedy.TestConsole
             //var person = new Person() { Name = "name1" };
             //var person2 = new Person() { Name = "name1" };
             //cnn.Insert<Person>(new[] { person, person2 });
-            cnn.Update<Person>(p => p.Id > 10, new Dictionary<Expression<Func<Person, object>>, object> {
-                {p=> p.Address, "mytest"},
-                {p=> p.Age, 14}
-            });
+            //cnn.Update<Person>(p => p.Id > 10, new Dictionary<Expression<Func<Person, object>>, object> {
+            //    {p=> p.Address, "mytest"},
+            //    {p=> p.Age, 14}
+            //});
+            var per = new Person { Id = 5 };
+            var id = 7;
+            var ids = new long[] { 9, 14, 15 };
+            var names = new List<string>(new[] { "ad2", "ad2ddfff" });
+            names.Add("ad2");
+            names.Add("ad2ddfff");
+            Console.WriteLine(cnn.Query<Person>("select * from person where id in @ids", new { ids }).Count());
+            Console.WriteLine(cnn.Get<Person>(p => ids.Contains(p.Id)).Count());
+            Console.WriteLine(cnn.Get<Person>(p => id == p.Id).Count());
+            Console.WriteLine(cnn.Get<Person>(p => per.Id == p.Id).Count());
+            Console.WriteLine(cnn.Get<Person>(p => names.Contains(p.Name)).Count());
+            Console.WriteLine(cnn.Get<Person>(p => p.Name.Contains("2d")).Count());
+            Console.WriteLine(cnn.Get<Person>(p => "ad2".Equals(p.Name)).Count());
+            Console.WriteLine(cnn.Get<Person>(p => new[] { "ad2", "ad2ddfff" }.Contains(p.Name)).Count());
+            Console.WriteLine(cnn.Get<Person>(p => new List<string>(new[] { "ad2", "ad2ddfff" }).Contains(p.Name)).Count());
             //cnn.Insert<Person>(new { Name = "asdsa", Age = 13, Address = "addoio;l" });
             //var dic = new Dictionardsy<string, object>();
             //var dic2 = new Dictionary<string, object>();
@@ -47,7 +62,8 @@ namespace Greedy.TestConsole
             //var id = cnn.InsertWithIdentity<Person>(obj);
             //Console.WriteLine(id);
             //cnn.Update<Person>(new { Id = id, Address = "就是那里" });
-            //cnn.Delete<Person>(p => p.Address == "ad" || (p.Age >= 19 && p.Age < 30));
+            //var age = 30;
+            //cnn.Delete<Person>(p => p.Address == "ad" || (p.Age >= 19 && p.Age < age));
             cnn.Close();
             //tran.Commit();
             //var obj2 = new { NAme = "ddd", AgE = 34 };
