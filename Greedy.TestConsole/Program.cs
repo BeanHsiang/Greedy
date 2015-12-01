@@ -17,6 +17,11 @@ namespace Greedy.TestConsole
         public string Address { get; set; }
     }
 
+    class Male : Person
+    {
+
+    }
+
     class Program
     {
         static void Main(string[] args)
@@ -37,9 +42,21 @@ namespace Greedy.TestConsole
             var names = new List<string>(new[] { "ad2", "ad2ddfff" });
             names.Add("ad2");
             names.Add("ad2ddfff");
-            Console.WriteLine(cnn.Query<Person>("select * from person where id in @ids", new { ids }).Count());
-            Console.WriteLine(cnn.Get<Person>(p => ids.Contains(p.Id)).Count());
-            Console.WriteLine(cnn.Get<Person>(p => id == p.Id).Count());
+            //Console.WriteLine(cnn.Execute("insert into Person(Name) values(@Name)", new[] { new   { Name = "M1" }, new   { Name = "p1" } }));
+            //Console.WriteLine(cnn.Get<Person>(p => ids.Contains((int)p.Id)).Count());
+            var targetEntity = new Person { Id = 7, Address = "Add3r", Name = "ddd1", Age = 2 };
+            var dic = new Dictionary<Expression<Func<Person, object>>, object>();
+
+            dic.Add(p => p.Name, targetEntity.Name);
+            dic.Add(p => p.Address, targetEntity.Address);
+            dic.Add(p => p.Age, targetEntity.Age);
+
+
+            Console.WriteLine(cnn.Update<Person>(p => p.Id < targetEntity.Id && p.Age >= targetEntity.Age && targetEntity.Name.Contains(p.Name), dic));
+            //cnn.Insert<Person>(new Person[] { new Person { Name = "M1" }, new Person { Name = "p1" } });
+
+            Console.WriteLine(cnn.Get<Person>(p => ids.Contains(p.Id) && "hz".IndexOf(p.Address) > -1).Count());
+            Console.WriteLine(cnn.Get<Person>(p => ids.Contains(p.Id) && ids[0] > p.Id).Count());
             Console.WriteLine(cnn.Get<Person>(p => per.Id == p.Id).Count());
             Console.WriteLine(cnn.Get<Person>(p => names.Contains(p.Name)).Count());
             Console.WriteLine(cnn.Get<Person>(p => p.Name.Contains("2d")).Count());

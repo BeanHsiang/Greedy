@@ -67,7 +67,7 @@ namespace Greedy.Toolkit.Sql
 
         public string GetDeleteSql(ITypeMapper mapper, string whereSql)
         {
-            return string.Format("Delete {0} Where {1}", DecorateName(mapper.TableName), whereSql);
+            return string.Format("Delete From {0} Where {1}", DecorateName(mapper.TableName), whereSql);
         }
 
         public string GetDeleteSql(ITypeMapper mapper, string alias, string whereSql)

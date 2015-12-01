@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Greedy.Toolkit.Sql
@@ -20,9 +21,19 @@ namespace Greedy.Toolkit.Sql
         public MemberMapper(PropertyInfo property)
         {
             this.Name = property.Name;
+#if NET45
             var columnAttr = property.GetCustomAttribute<ColumnAttribute>();
+#else
+            var columnAttr = property.GetCustomAttributes(typeof(ColumnAttribute), true).FirstOrDefault() as ColumnAttribute;
+#endif
+
             this.ColumnName = columnAttr == null ? this.Name : columnAttr.Name;
+
+#if NET45
             var keyAttr = property.GetCustomAttribute<KeyAttribute>();
+#else
+            var keyAttr = property.GetCustomAttributes(typeof(KeyAttribute), true).FirstOrDefault() as KeyAttribute;
+#endif
             if (keyAttr != null)
             {
                 this.IsKey = true;

@@ -63,8 +63,11 @@ namespace Greedy.Toolkit.Sql
             {
                 this.Name = type.Name;
                 InitMemberMappers(type);
-
+#if NET45
                 var tableAttr = type.GetCustomAttribute<TableAttribute>();
+#else
+                var tableAttr = type.GetCustomAttributes(typeof(TableAttribute), true).FirstOrDefault() as TableAttribute;
+#endif
                 this.TableName = tableAttr == null ? this.Name : tableAttr.Name;
                 if (!this.AllMembers.Any(m => m.IsKey))
                 {

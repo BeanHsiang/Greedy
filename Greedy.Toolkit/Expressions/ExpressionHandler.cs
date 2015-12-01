@@ -156,7 +156,12 @@ namespace Greedy.Toolkit.Expressions
                 if (field == null)
                 {
                     var property = obj.GetType().GetProperty(expression.Member.Name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+#if NET45
                     r = property.GetValue(obj);
+#else
+                    r = property.GetValue(obj, null);
+#endif
+
                 }
                 else
                     r = field.GetValue(obj);
@@ -167,44 +172,37 @@ namespace Greedy.Toolkit.Expressions
 
         public string GetSql(MethodCallExpression expression)
         {
+            Expression arg0, arg1;
+            if (expression.Object == null)
+            {
+                arg0 = expression.Arguments[0];
+                arg1 = expression.Arguments[1];
+            }
+            else
+            {
+                arg0 = expression.Object;
+                arg1 = expression.Arguments[0];
+            }
+
             if (expression.Method.Name == "Contains")
             {
-                Expression arg0, arg1;
-                if (expression.Object == null)
-                {
-                    arg0 = expression.Arguments[0];
-                    arg1 = expression.Arguments[1];
-                }
-                else
-                {
-                    arg0 = expression.Object;
-                    arg1 = expression.Arguments[0];
-                }
-
-                if (arg1.NodeType == ExpressionType.MemberAccess)
+                if (arg0.Type != typeof(string)) // arg1.NodeType == ExpressionType.MemberAccess
                 {
                     return string.Format("{0} in {1}", GetSql(arg1), GetSql(arg0));
                 }
                 else
                 {
-                    return string.Format("{0} like {1}", GetSql(expression.Object), Context.AddParameter(null, "%" + (expression.Arguments[0] as ConstantExpression).Value + "%"));
+                    return string.Format("LOCATE({1}, {0}) > 0 ", GetSql(arg0), GetSql(arg1));
+                    //return string.Format("{0} like {1}", GetSql(expression.Object), Context.AddParameter(null, "%" + (expression.Arguments[0] as ConstantExpression).Value + "%"));
                 }
             }
-            if (expression.Method.Name == "Equals")
+            else if (expression.Method.Name == "Equals")
             {
-                Expression arg0, arg1;
-                if (expression.Object == null)
-                {
-                    arg0 = expression.Arguments[0];
-                    arg1 = expression.Arguments[1];
-                }
-                else
-                {
-                    arg0 = expression.Object;
-                    arg1 = expression.Arguments[0];
-                }
-
                 return string.Format("{0} = {1}", GetSql(arg0), GetSql(arg1));
+            }
+            else if (expression.Method.Name == "IndexOf")
+            {
+                return string.Format("LOCATE({1}, {0})", GetSql(arg0), GetSql(arg1));
             }
             return string.Empty;
         }
@@ -250,6 +248,13 @@ namespace Greedy.Toolkit.Expressions
             else if (expression.NodeType == ExpressionType.Subtract)
             {
                 return string.Format("{0} - {1} ", GetSql(expression.Left), GetSql(expression.Right));
+            }
+            else if (expression.NodeType == ExpressionType.ArrayIndex)
+            {
+                var r = GetObject(expression.Left);
+
+                var param = r.GetType().GetMethod("GetValue", new Type[] { typeof(int) }).Invoke(r, new[] { GetObject(expression.Right) });
+                return Context.AddParameter(null, param);
             }
             return "";
         }
