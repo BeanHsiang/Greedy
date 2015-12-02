@@ -51,18 +51,18 @@ namespace Greedy.TestConsole
             dic.Add(p => p.Address, targetEntity.Address);
             dic.Add(p => p.Age, targetEntity.Age);
 
-
-            Console.WriteLine(cnn.Update<Person>(p => p.Id < targetEntity.Id && p.Age >= targetEntity.Age && targetEntity.Name.Contains(p.Name), dic));
+            var str = "6";
+            //Console.WriteLine(cnn.Update<Person>(p => p.Id < targetEntity.Id && p.Age >= targetEntity.Age && targetEntity.Name.Contains(p.Name), dic));
             //cnn.Insert<Person>(new Person[] { new Person { Name = "M1" }, new Person { Name = "p1" } });
-
-            Console.WriteLine(cnn.Get<Person>(p => ids.Contains(p.Id) && "hz".IndexOf(p.Address) > -1).Count());
-            Console.WriteLine(cnn.Get<Person>(p => ids.Contains(p.Id) && ids[0] > p.Id).Count());
-            Console.WriteLine(cnn.Get<Person>(p => per.Id == p.Id).Count());
-            Console.WriteLine(cnn.Get<Person>(p => names.Contains(p.Name)).Count());
-            Console.WriteLine(cnn.Get<Person>(p => p.Name.Contains("2d")).Count());
-            Console.WriteLine(cnn.Get<Person>(p => "ad2".Equals(p.Name)).Count());
-            Console.WriteLine(cnn.Get<Person>(p => new[] { "ad2", "ad2ddfff" }.Contains(p.Name)).Count());
-            Console.WriteLine(cnn.Get<Person>(p => new List<string>(new[] { "ad2", "ad2ddfff" }).Contains(p.Name)).Count());
+            Console.WriteLine(cnn.Get<Person>(p => p.Id == long.Parse(str)).Count());
+            //Console.WriteLine(cnn.Get<Person>(p => ids.Contains(p.Id) && "hz".IndexOf(p.Address) > -1).Count());
+            //Console.WriteLine(cnn.Get<Person>(p => ids.Contains(p.Id) && ids[0] > p.Id).Count());
+            //Console.WriteLine(cnn.Get<Person>(p => per.Id == p.Id).Count());
+            //Console.WriteLine(cnn.Get<Person>(p => names.Contains(p.Name)).Count());
+            //Console.WriteLine(cnn.Get<Person>(p => p.Name.Contains("2d")).Count());
+            //Console.WriteLine(cnn.Get<Person>(p => "ad2".Equals(p.Name)).Count());
+            //Console.WriteLine(cnn.Get<Person>(p => new[] { "ad2", "ad2ddfff" }.Contains(p.Name)).Count());
+            //Console.WriteLine(cnn.Get<Person>(p => new List<string>(new[] { "ad2", "ad2ddfff" }).Contains(p.Name)).Count());
             //cnn.Insert<Person>(new { Name = "asdsa", Age = 13, Address = "addoio;l" });
             //var dic = new Dictionardsy<string, object>();
             //var dic2 = new Dictionary<string, object>();

@@ -173,19 +173,20 @@ namespace Greedy.Toolkit.Expressions
         public string GetSql(MethodCallExpression expression)
         {
             Expression arg0, arg1;
-            if (expression.Object == null)
-            {
-                arg0 = expression.Arguments[0];
-                arg1 = expression.Arguments[1];
-            }
-            else
-            {
-                arg0 = expression.Object;
-                arg1 = expression.Arguments[0];
-            }
 
             if (expression.Method.Name == "Contains")
             {
+                if (expression.Object == null)
+                {
+                    arg0 = expression.Arguments[0];
+                    arg1 = expression.Arguments[1];
+                }
+                else
+                {
+                    arg0 = expression.Object;
+                    arg1 = expression.Arguments[0];
+                }
+
                 if (arg0.Type != typeof(string)) // arg1.NodeType == ExpressionType.MemberAccess
                 {
                     return string.Format("{0} in {1}", GetSql(arg1), GetSql(arg0));
@@ -198,11 +199,45 @@ namespace Greedy.Toolkit.Expressions
             }
             else if (expression.Method.Name == "Equals")
             {
+                if (expression.Object == null)
+                {
+                    arg0 = expression.Arguments[0];
+                    arg1 = expression.Arguments[1];
+                }
+                else
+                {
+                    arg0 = expression.Object;
+                    arg1 = expression.Arguments[0];
+                }
+
                 return string.Format("{0} = {1}", GetSql(arg0), GetSql(arg1));
             }
             else if (expression.Method.Name == "IndexOf")
             {
+                if (expression.Object == null)
+                {
+                    arg0 = expression.Arguments[0];
+                    arg1 = expression.Arguments[1];
+                }
+                else
+                {
+                    arg0 = expression.Object;
+                    arg1 = expression.Arguments[0];
+                }
+
                 return string.Format("LOCATE({1}, {0})", GetSql(arg0), GetSql(arg1));
+            }
+            else if (expression.Method.Name == "Parse")
+            {
+                if (expression.Object == null)
+                {
+                    arg0 = expression.Arguments[0];
+                }
+                else
+                {
+                    arg0 = expression.Object;
+                }
+                return GetSql(arg0);
             }
             return string.Empty;
         }
