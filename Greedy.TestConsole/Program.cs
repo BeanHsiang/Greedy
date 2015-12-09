@@ -54,7 +54,7 @@ namespace Greedy.TestConsole
             var str = "6";
             //Console.WriteLine(cnn.Update<Person>(p => p.Id < targetEntity.Id && p.Age >= targetEntity.Age && targetEntity.Name.Contains(p.Name), dic));
             //cnn.Insert<Person>(new Person[] { new Person { Name = "M1" }, new Person { Name = "p1" } });
-            Console.WriteLine(cnn.Get<Person>(p => p.Id == long.Parse(str)).Count());
+            Console.WriteLine(cnn.Get<Person>(null).Count());
             //Console.WriteLine(cnn.Get<Person>(p => ids.Contains(p.Id) && "hz".IndexOf(p.Address) > -1).Count());
             //Console.WriteLine(cnn.Get<Person>(p => ids.Contains(p.Id) && ids[0] > p.Id).Count());
             //Console.WriteLine(cnn.Get<Person>(p => per.Id == p.Id).Count());

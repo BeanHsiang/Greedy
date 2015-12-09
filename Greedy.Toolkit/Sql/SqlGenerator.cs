@@ -57,21 +57,30 @@ namespace Greedy.Toolkit.Sql
 
         public string GetFetchSql(ITypeMapper mapper, string whereSql)
         {
+            if (string.IsNullOrEmpty(whereSql))
+                return GetSelectSql(mapper);
             return string.Format("Select * From {0} Where {1}", DecorateName(mapper.TableName), whereSql);
         }
 
         public string GetFetchSql(ITypeMapper mapper, string alias, string whereSql)
         {
+            if (string.IsNullOrEmpty(whereSql))
+                return GetSelectSql(mapper);
             return string.Format("Select * From {0} Where {1}", DecorateName(mapper.TableName, alias), whereSql);
         }
 
         public string GetDeleteSql(ITypeMapper mapper, string whereSql)
         {
+            if (string.IsNullOrEmpty(whereSql))
+                return string.Format("Delete From {0}", DecorateName(mapper.TableName));
+
             return string.Format("Delete From {0} Where {1}", DecorateName(mapper.TableName), whereSql);
         }
 
         public string GetDeleteSql(ITypeMapper mapper, string alias, string whereSql)
         {
+            if (string.IsNullOrEmpty(whereSql))
+                return string.Format("Delete From {0}", DecorateName(mapper.TableName));
             return string.Format("Delete {0} From {1} Where {2}", alias, DecorateName(mapper.TableName, alias), whereSql);
         }
 

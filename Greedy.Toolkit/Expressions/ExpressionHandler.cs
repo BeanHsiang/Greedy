@@ -64,8 +64,12 @@ namespace Greedy.Toolkit.Expressions
 
         public string GetSql(LambdaExpression expression)
         {
-            InitParameters(expression.Parameters);
-            return GetSql(expression.Body);
+            if (expression != null)
+            {
+                InitParameters(expression.Parameters);
+                return GetSql(expression.Body);
+            }
+            return string.Empty;
         }
 
         public string GetSql(IEnumerable<LambdaExpression> expressions)
