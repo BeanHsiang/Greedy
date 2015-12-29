@@ -40,7 +40,7 @@ namespace Greedy.Toolkit.Expressions
 
         public void AddAlias(Type type, string alias = "")
         {
-            var typeMapper = TypeHandler.GetTypeMapper(type);
+            var typeMapper = TypeMapperCache.GetTypeMapper(type);
             if (Alias.Keys.Any(k => k.Code == typeMapper.Code)) return;
             if (string.IsNullOrEmpty(alias))
             {

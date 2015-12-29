@@ -12,16 +12,16 @@ namespace Greedy.Toolkit.Expressions
     {
         public TypeHandler TypeHandler { get; private set; }
         public ExpressionContext Context { get; private set; }
-        public ExpressionHandleOption Option { get; private set; }
+
 
         internal ExpressionHandler(ExpressionContext context, ExpressionHandleOption option)
         {
             TypeHandler = context.TypeHandler;
-            Option = option;
+
             Context = context;
         }
 
-        private string GetSql(Expression expression)
+        internal string GetSql(Expression expression)
         {
             if (expression is LambdaExpression)
             {
@@ -119,16 +119,16 @@ namespace Greedy.Toolkit.Expressions
 
         public string GetSql(ParameterExpression expression, MemberInfo memberInfo)
         {
-            var typeMapper = TypeHandler.GetTypeMapper(expression.Type);
+            var typeMapper = TypeMapperCache.GetTypeMapper(expression.Type);
             var columnMapper = typeMapper.AllMembers.SingleOrDefault(m => m.Name == memberInfo.Name);
-            if (Option.UseAlias)
-            {
-                return string.Format("{0}.{1}", Context.GetAlias(typeMapper), TypeHandler.SqlGenerator.DecorateName(columnMapper.ColumnName));
-            }
-            else
-            {
-                return TypeHandler.SqlGenerator.DecorateName(columnMapper.ColumnName);
-            }
+            //if (Option.UseAlias)
+            //{
+            return string.Format("{0}.{1}", Context.GetAlias(typeMapper), TypeHandler.SqlGenerator.DecorateName(columnMapper.ColumnName));
+            //}
+            //else
+            //{
+            //    return TypeHandler.SqlGenerator.DecorateName(columnMapper.ColumnName);
+            //}
         }
 
         public object GetObject(Expression expression)
