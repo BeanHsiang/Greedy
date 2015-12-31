@@ -9,11 +9,32 @@ namespace Greedy.Toolkit.Expressions
 {
     class QueryFragment
     {
+        public ICollection<Column> SelectPart { get; set; }
         public Condition WherePart { get; set; }
+        public ICollection<Table> FromPart { get; set; }
+
+        public QueryFragment()
+        {
+            this.SelectPart = new List<Column>();
+            this.FromPart = new List<Table>();
+        }
 
         public string ToSql(SqlGenerator generator)
         {
             var sb = new StringBuilder();
+
+            sb.Append("Select ");
+            if (SelectPart.Any())
+            {
+                sb = SelectPart.Aggregate(sb, (s, i) => s.AppendFormat("{0} ", i.ToSql(generator)));
+            }
+            else
+            {
+                sb.Append("* ");
+            }
+            sb.Append("From ");
+            sb = FromPart.Aggregate(sb, (s, i) => s.AppendFormat("{0} ", i.ToSql(generator)));
+
             if (WherePart != null)
             {
                 sb.AppendFormat("Where {0}", WherePart.ToSql(generator));
@@ -22,10 +43,48 @@ namespace Greedy.Toolkit.Expressions
         }
     }
 
+    abstract class Table
+    {
+        public string Alias { get; set; }
+        public Type Type { get; set; }
+        public abstract string ToSql(SqlGenerator generator);
+
+        public Table(string alias)
+        {
+            this.Alias = alias;
+        }
+    }
+
+    class SingleTable : Table
+    {
+        public string TableName { get; set; }
+
+        public SingleTable(string tableName, string alias)
+            : base(alias)
+        {
+            this.TableName = tableName;
+        }
+
+        public SingleTable(string tableName)
+            : base(null)
+        {
+            this.TableName = tableName;
+        }
+
+        public override string ToSql(SqlGenerator generator)
+        {
+            var sb = new StringBuilder();
+            sb.Append(TableName);
+            if (!string.IsNullOrEmpty(this.Alias))
+                sb.AppendFormat(" AS {0}", Alias);
+            return sb.ToString();
+        }
+    }
 
     abstract class Column
     {
         public string Alias { get; set; }
+        public Type Type { get; set; }
         public abstract string ToSql(SqlGenerator generator);
 
         public Column(string alias)
@@ -33,7 +92,6 @@ namespace Greedy.Toolkit.Expressions
             this.Alias = alias;
         }
     }
-
 
     class MemberColumn : Column
     {
@@ -63,6 +121,34 @@ namespace Greedy.Toolkit.Expressions
             if (!string.IsNullOrEmpty(this.Alias))
                 sb.AppendFormat(" AS {0}", Alias);
             return sb.ToString();
+        }
+    }
+
+    class FunctionColumn : Column
+    {
+        public string Formatter { get; set; }
+        public ICollection<Column> Parameters { get; private set; }
+
+        public FunctionColumn(string alias)
+            : base(alias)
+        {
+            this.Parameters = new List<Column>();
+        }
+
+        public FunctionColumn()
+            : base(null)
+        {
+            this.Parameters = new List<Column>();
+        }
+
+        public void Add(Column column)
+        {
+            this.Parameters.Add(column);
+        }
+
+        public override string ToSql(SqlGenerator generator)
+        {
+            return string.Format(this.Formatter, this.Parameters.Select(p => p.ToSql(generator)).ToArray());
         }
     }
 

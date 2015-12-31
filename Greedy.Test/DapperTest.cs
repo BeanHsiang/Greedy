@@ -210,19 +210,29 @@ namespace Greedy.Test
         {
             var count = con.Get<Person>(p => p.Name.Contains("test")).Count();
             Assert.AreNotEqual(0, count, "获取带Contains方法的查询失败");
+
+            var name = "TestInsertStrongClassInstanceName";
+            var count2 = con.Get<Person>(p => name.Contains(p.Name)).Count();
+            Assert.AreNotEqual(0, count2, "获取带Contains方法的查询失败");
+
+            var count3 = con.Get<Person>(p => "TestInsertStrongClassInstanceName".Contains(p.Name)).Count();
+            Assert.AreNotEqual(0, count3, "获取带Contains方法的查询失败");
+        }
+
+        [TestMethod]
+        public void TestSingleLinq()
+        {
+            var arr = con.Predicate<Person>().ToList();
+            Assert.AreNotEqual(0, arr.Count, "获取Linq单表查询失败");
         }
     }
-}  //Console.WriteLine(cnn.Update<Person>(p => p.Id < targetEntity.Id && p.Age >= targetEntity.Age && targetEntity.Name.Contains(p.Name), dic));
-//cnn.Insert<Person>(new Person[] { new Person { Name = "M1" }, new Person { Name = "p1" } });
-//var q = from p in cnn.Query<Person>()
-//        from m in cnn.Query<Article>()
-//        where p.Id == m.PersonId
-//        select p;
-//var q1 = cnn.Query<Person>().Where(p => p.Address == "asd").Where(p => p.Age > 32);
-//Console.WriteLine(q1.ToArray().Count());
+}
+
+
+
 //Console.WriteLine(cnn.Get<Person>(p => ids.Contains(p.Id) && "hz".IndexOf(p.Address) > -1).Count());
 //Console.WriteLine(cnn.Get<Person>(p => ids.Contains(p.Id) && ids[0] > p.Id).Count());
-//Console.WriteLine(cnn.Get<Person>(p => per.Id == p.Id).Count());
+
 //Console.WriteLine(cnn.Get<Person>(p => names.Contains(p.Name)).Count());
 //Console.WriteLine(cnn.Get<Person>(p => p.Name.Contains("2d")).Count());
 //Console.WriteLine(cnn.Get<Person>(p => "ad2".Equals(p.Name)).Count());

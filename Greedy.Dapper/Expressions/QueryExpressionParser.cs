@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Greedy.Dapper;
+using Greedy.Toolkit.Sql;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -16,7 +18,7 @@ namespace Greedy.Toolkit.Expressions
         internal QueryExpressionParser(IDbConnection connection)
         {
             this.connection = connection;
-            this.context = new ExpressionVisitorContext(connection);
+            this.context = new ExpressionVisitorContext(connection) { UseTableAlias = true };
         }
 
         internal void Parse(Expression expression)
@@ -31,7 +33,7 @@ namespace Greedy.Toolkit.Expressions
                 case "Where":
                     var visitor = new WhereExpressionVisitor(context);
                     visitor.Visit(node);
-
+                    this.context.Fragment.WherePart = visitor.Condition;
                     break;
                 default:
                     break;
@@ -56,6 +58,16 @@ namespace Greedy.Toolkit.Expressions
             var visitor = new BinaryExpressionVisitor(context);
             visitor.Visit(node);
 
+            return node;
+        }
+
+        protected override Expression VisitConstant(ConstantExpression node)
+        {
+            if (node.Type.GetGenericTypeDefinition() == typeof(DataQuery<>))
+            {
+                var typeMapper = TypeMapperCache.GetTypeMapper(node.Type.GetGenericArguments()[0]);
+                this.context.Fragment.FromPart.Add(new SingleTable(typeMapper.TableName, this.context.GetTableAlias(node.Type)));
+            }
             return node;
         }
 

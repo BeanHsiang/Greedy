@@ -50,5 +50,13 @@ namespace Greedy.Toolkit.Expressions
 
             return condition;
         }
+
+        protected override Expression VisitMethodCall(MethodCallExpression node)
+        {
+            var visitor = new MethodCallExpressionVisitor(this.Context);
+            visitor.Visit(node);
+            this.Condition = new SingleCondition { Right = visitor.Column };
+            return node;
+        }
     }
 }

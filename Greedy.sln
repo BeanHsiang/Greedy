@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Greedy.Dapper", "Greedy.Dap
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Greedy.Toolkit", "Greedy.Toolkit\Greedy.Toolkit.csproj", "{A503F132-88F9-4200-AEBD-A64986D886F5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Greedy.TestConsole", "Greedy.TestConsole\Greedy.TestConsole.csproj", "{97DAEDF2-9731-462D-A2FB-477493415917}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Greedy.Test", "Greedy.Test\Greedy.Test.csproj", "{49D7DD72-C80E-4D3C-9045-4D7E98C2F325}"
 EndProject
 Global
@@ -25,10 +23,6 @@ Global
 		{A503F132-88F9-4200-AEBD-A64986D886F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A503F132-88F9-4200-AEBD-A64986D886F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A503F132-88F9-4200-AEBD-A64986D886F5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{97DAEDF2-9731-462D-A2FB-477493415917}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{97DAEDF2-9731-462D-A2FB-477493415917}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{97DAEDF2-9731-462D-A2FB-477493415917}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{97DAEDF2-9731-462D-A2FB-477493415917}.Release|Any CPU.Build.0 = Release|Any CPU
 		{49D7DD72-C80E-4D3C-9045-4D7E98C2F325}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{49D7DD72-C80E-4D3C-9045-4D7E98C2F325}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{49D7DD72-C80E-4D3C-9045-4D7E98C2F325}.Release|Any CPU.ActiveCfg = Release|Any CPU

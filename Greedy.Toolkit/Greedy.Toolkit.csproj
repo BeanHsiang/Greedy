@@ -43,13 +43,11 @@
     <Compile Include="BackgroundService\IBackgroundTask.cs" />
     <Compile Include="Class1.cs" />
     <Compile Include="Expressions\BinaryExpressionVisitor.cs" />
-    <Compile Include="Expressions\ExpressionContext.cs" />
-    <Compile Include="Expressions\ExpressionHandleOption.cs" />
-    <Compile Include="Expressions\ExpressionHandler.cs" />
+    <Compile Include="Expressions\ExpressionExtension.cs" />
     <Compile Include="Expressions\ExpressionVisitorBase.cs" />
     <Compile Include="Expressions\ExpressionVisitorContext.cs" />
     <Compile Include="Expressions\MemberExpressionVisitor.cs" />
-    <Compile Include="Expressions\QueryExpressionParser.cs" />
+    <Compile Include="Expressions\MethodCallExpressionVisitor.cs" />
     <Compile Include="Expressions\QueryFragment.cs" />
     <Compile Include="Expressions\WhereExpressionVisitor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -9,7 +9,7 @@ namespace Greedy.Toolkit.Expressions
 {
     class BinaryExpressionVisitor : ExpressionVisitorBase
     {
-        public SingleCondition Condition { get; private set; }
+        public Condition Condition { get; private set; }
 
         public Column Column { get; private set; }
 
@@ -53,20 +53,27 @@ namespace Greedy.Toolkit.Expressions
             return node;
         }
 
-        private SingleCondition GetRelationCondition(string relation, BinaryExpression node)
+        private Condition GetRelationCondition(string relation, BinaryExpression node)
         {
-            var condition = new SingleCondition();
-            condition.Relation = relation;
-
             var leftVisitor = new BinaryExpressionVisitor(this.Context);
             leftVisitor.Visit(node.Left);
-            condition.Left = leftVisitor.Column;
 
             var rightVisitor = new BinaryExpressionVisitor(this.Context);
             rightVisitor.Visit(node.Right);
-            condition.Right = rightVisitor.Column;
 
-            return condition;
+            if (leftVisitor.Column != null && rightVisitor.Column != null)
+            {
+                var condition = new SingleCondition();
+                condition.Left = leftVisitor.Column;
+                condition.Right = rightVisitor.Column;
+                condition.Relation = relation;
+                return condition;
+            }
+            var group = new GroupCondition();
+            group.Left = leftVisitor.Condition ?? new SingleCondition() { Right = leftVisitor.Column };
+            group.Right = rightVisitor.Condition ?? new SingleCondition() { Right = rightVisitor.Column };
+            group.Relation = relation;
+            return group;
         }
 
         protected override Expression VisitMember(MemberExpression node)
@@ -79,7 +86,17 @@ namespace Greedy.Toolkit.Expressions
 
         protected override Expression VisitConstant(ConstantExpression node)
         {
-            this.Column = new ParameterColumn(this.Context.AddParameter(node.Value));
+            var visitor = new MemberExpressionVisitor(this.Context);
+            visitor.Visit(node);
+            Column = visitor.Column;
+            return node;
+        }
+
+        protected override Expression VisitMethodCall(MethodCallExpression node)
+        {
+            var visitor = new MethodCallExpressionVisitor(this.Context);
+            visitor.Visit(node);
+            Column = visitor.Column;
             return node;
         }
     }

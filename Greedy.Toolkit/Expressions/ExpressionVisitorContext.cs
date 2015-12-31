@@ -15,8 +15,8 @@ namespace Greedy.Toolkit.Expressions
         public IDictionary<string, object> Parameters { get; private set; }
         public IDictionary<Type, string> TableNames { get; private set; }
 
-        internal bool UserTableName { get; set; }
-        internal bool UserColumnAlias { get; set; }
+        internal bool UseTableAlias { get; set; }
+        //internal bool UserColumnAlias { get; set; }
 
         internal ExpressionVisitorContext(IDbConnection connection)
         {
@@ -43,7 +43,7 @@ namespace Greedy.Toolkit.Expressions
 
         public string GetTableAlias(Type type)
         {
-            if (!UserTableName)
+            if (!UseTableAlias)
             {
                 return string.Empty;
             }

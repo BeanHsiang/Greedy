@@ -46,14 +46,8 @@
     <Compile Include="..\Greedy.Toolkit\Expressions\BinaryExpressionVisitor.cs">
       <Link>Expressions\BinaryExpressionVisitor.cs</Link>
     </Compile>
-    <Compile Include="..\Greedy.Toolkit\Expressions\ExpressionContext.cs">
-      <Link>Expressions\ExpressionContext.cs</Link>
-    </Compile>
-    <Compile Include="..\Greedy.Toolkit\Expressions\ExpressionHandleOption.cs">
-      <Link>Expressions\ExpressionHandleOption.cs</Link>
-    </Compile>
-    <Compile Include="..\Greedy.Toolkit\Expressions\ExpressionHandler.cs">
-      <Link>Expressions\ExpressionHandler.cs</Link>
+    <Compile Include="..\Greedy.Toolkit\Expressions\ExpressionExtension.cs">
+      <Link>Expressions\ExpressionExtension.cs</Link>
     </Compile>
     <Compile Include="..\Greedy.Toolkit\Expressions\ExpressionVisitorBase.cs">
       <Link>Expressions\ExpressionVisitorBase.cs</Link>
@@ -64,8 +58,8 @@
     <Compile Include="..\Greedy.Toolkit\Expressions\MemberExpressionVisitor.cs">
       <Link>Expressions\MemberExpressionVisitor.cs</Link>
     </Compile>
-    <Compile Include="..\Greedy.Toolkit\Expressions\QueryExpressionParser.cs">
-      <Link>Expressions\QueryExpressionParser.cs</Link>
+    <Compile Include="..\Greedy.Toolkit\Expressions\MethodCallExpressionVisitor.cs">
+      <Link>Expressions\MethodCallExpressionVisitor.cs</Link>
     </Compile>
     <Compile Include="..\Greedy.Toolkit\Expressions\QueryFragment.cs">
       <Link>Expressions\QueryFragment.cs</Link>
@@ -103,7 +97,10 @@
     <Compile Include="..\Greedy.Toolkit\Sql\TypeMapperCache.cs">
       <Link>Sql\TypeMapperCache.cs</Link>
     </Compile>
+    <Compile Include="DataQuery.cs" />
+    <Compile Include="Expressions\QueryExpressionParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QueryProvider.cs" />
     <Compile Include="SqlMapper.cs" />
     <Compile Include="SqlMapperExtension.cs" />
     <Compile Include="Sql\ColumnSet.cs" />

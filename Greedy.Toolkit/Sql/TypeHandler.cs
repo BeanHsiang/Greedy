@@ -48,13 +48,13 @@ namespace Greedy.Toolkit.Sql
             return sql;
         }
 
-        public string GetSelectSql<T>(Expression expression, out IDictionary<string, dynamic> param)
-        {
-            var expressionHandler = new ExpressionHandler(new ExpressionContext(this), new ExpressionHandleOption());
-            var targetMapper = TypeMapperCache.GetTypeMapper(typeof(T));
-            param = expressionHandler.Context.Parameters;
-            return expressionHandler.GetSql(expression);
-        }
+        //public string GetSelectSql<T>(Expression expression, out IDictionary<string, dynamic> param)
+        //{
+        //    var expressionHandler = new ExpressionHandler(new ExpressionContext(this), new ExpressionHandleOption());
+        //    var targetMapper = TypeMapperCache.GetTypeMapper(typeof(T));
+        //    param = expressionHandler.Context.Parameters;
+        //    return expressionHandler.GetSql(expression);
+        //}
 
         public string GetFetchSql<T>(Expression<Func<T, bool>> expression, out IDictionary<string, dynamic> param)
         {

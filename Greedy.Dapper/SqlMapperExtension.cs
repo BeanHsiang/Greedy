@@ -28,7 +28,19 @@ namespace Greedy.Dapper
 
         public static int Insert<T>(this IDbConnection cnn, object param, IDbTransaction transaction = null, int? commandTimeout = null)
         {
-            return cnn.Execute(GetTypeHandler(cnn).GetInsertSql<T>(param), param, transaction, commandTimeout);
+            var type = param.GetType();
+            if (type.IsArray && type != typeof(T))
+            {
+                object[] arr = (object[])param;
+                var count = 0;
+                foreach (var item in arr)
+                {
+                    count += cnn.Insert<T>(item);
+                }
+                return count;
+            }
+            else
+                return cnn.Execute(GetTypeHandler(cnn).GetInsertSql<T>(param), param, transaction, commandTimeout);
         }
 
         public static long InsertWithIdentity<T>(this IDbConnection cnn, object param, IDbTransaction transaction = null, int? commandTimeout = null)
@@ -70,14 +82,15 @@ namespace Greedy.Dapper
         public static IEnumerable<T> Get<T>(this IDbConnection cnn, Expression<Func<T, bool>> expression, IDbTransaction transaction = null, bool buffered = true, int? commandTimeout = null)
         {
             IDictionary<string, dynamic> parameters;
+
             var sql = GetTypeHandler(cnn).GetFetchSql<T>(expression, out parameters);
             //cnn.Query<T>().Where(expression);
             return cnn.Query<T>(sql, parameters, transaction, buffered, commandTimeout);
         }
 
-        public static IQueryable<T> Query<T>(this IDbConnection dbConnection)
+        public static IQueryable<T> Predicate<T>(this IDbConnection dbConnection)
         {
-            return null;
+            return new DataQuery<T>(new QueryProvider(dbConnection));
         }
     }
 }
