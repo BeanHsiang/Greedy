@@ -49,6 +49,7 @@
     <Compile Include="Expressions\MemberExpressionVisitor.cs" />
     <Compile Include="Expressions\MethodCallExpressionVisitor.cs" />
     <Compile Include="Expressions\QueryFragment.cs" />
+    <Compile Include="Expressions\SelectExpressionVisitor.cs" />
     <Compile Include="Expressions\WhereExpressionVisitor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sql\ColumnAttribute.cs" />

@@ -223,7 +223,22 @@ namespace Greedy.Test
         public void TestSingleLinq()
         {
             var arr = con.Predicate<Person>().ToList();
-            Assert.AreNotEqual(0, arr.Count, "获取Linq单表查询失败");
+            Assert.AreNotEqual(0, arr.Count, "Linq单表全表查询失败");
+
+            var arr2 = con.Predicate<Person>().Where(p => p.Age > 30).ToList();
+            Assert.AreNotEqual(0, arr2.Count, "Linq单表带Where查询失败");
+
+            var arr3 = con.Predicate<Person>().Where(p => p.Age > 30 && p.Age < 50).Select(p => new { p.Id, p.Name }).ToList();
+            Assert.AreNotEqual(0, arr3.Count, "Linq单表带Where匿名查询失败");
+
+            var arr4 = con.Predicate<Person>().Where(p => p.Age > 30 && p.Age < 90).Select(p => new { p.Id, p.Name }).Skip(2).Take(10).ToList();
+            Assert.AreNotEqual(0, arr4.Count, "Linq单表带Where带分页匿名查询失败");
+
+            var arr5 = con.Predicate<Person>().Where(p => p.Age > 30 && p.Age < 90).Count(p=>p.Address.Contains("address"));
+            Assert.AreNotEqual(0, arr5, "Linq单表带Where求行数查询失败");
+
+            var arr6 = con.Predicate<Person>().Where(p => p.Age > 30 && p.Age < 90).Any();
+            Assert.IsTrue(arr6, "Linq单表带Where求是否存在查询失败");
         }
     }
 }

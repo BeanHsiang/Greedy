@@ -55,24 +55,38 @@ namespace Greedy.Dapper
             if (expression.NodeType == ExpressionType.Call && type.IsValueType)
             {
                 var method = ((MethodCallExpression)expression).Method;
-                object r = null;
-                DataSet ds = null;
                 switch (method.Name)
                 {
                     case "Any":
                     case "Average":
                     case "Sum":
                     case "Count":
-                        return (TResult)_connection.ExecuteScalar(parser.ToSql(), parser.Parameters);
+                        var returnMethod = typeof(SqlMapper).GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static).FirstOrDefault(x => x.Name == "ExecuteScalar" && x.IsGenericMethodDefinition).MakeGenericMethod(type);
+                        var param0 = Expression.Parameter(typeof(IDbConnection));
+                        var param1 = Expression.Parameter(typeof(string));
+                        var param2 = Expression.Parameter(typeof(object));
+                        var param3 = Expression.Parameter(typeof(IDbTransaction));
+                        var param4 = Expression.Parameter(typeof(int?));
+                        var param5 = Expression.Parameter(typeof(CommandType?));
+                        var source = Expression.Call(returnMethod, param0, param1, param2, param3, param4, param5);
+                        return Expression.Lambda<Func<IDbConnection, string, object, IDbTransaction, int?, CommandType?, TResult>>(source, param0, param1, param2, param3, param4, param5).Compile()(_connection, parser.ToSql(), parser.Parameters, null, null, null);
 
                     default:
-                        throw new Exception("not supporting yet");
+                        throw new Exception("not supported yet");
                 }
             }
             else
             {
-                var method = typeof(SqlMapper).GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static).FirstOrDefault(x => x.Name == "Query" && x.IsGenericMethodDefinition).MakeGenericMethod(typeof(TResult).GetGenericArguments());
-
+                MethodInfo method;
+                //var isAnonymous = false;
+                //if (!isAnonymous)
+                //{
+                method = typeof(SqlMapper).GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static).FirstOrDefault(x => x.Name == "Query" && x.IsGenericMethodDefinition).MakeGenericMethod(type.GetGenericArguments());
+                //}
+                //else
+                //{
+                //    method = typeof(SqlMapper).GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static).FirstOrDefault(x => x.Name == "Query" && !x.IsGenericMethodDefinition);
+                //}
                 var param0 = Expression.Parameter(typeof(IDbConnection));
                 var param1 = Expression.Parameter(typeof(string));
                 var param2 = Expression.Parameter(typeof(object));

@@ -64,6 +64,9 @@
     <Compile Include="..\Greedy.Toolkit\Expressions\QueryFragment.cs">
       <Link>Expressions\QueryFragment.cs</Link>
     </Compile>
+    <Compile Include="..\Greedy.Toolkit\Expressions\SelectExpressionVisitor.cs">
+      <Link>Expressions\SelectExpressionVisitor.cs</Link>
+    </Compile>
     <Compile Include="..\Greedy.Toolkit\Expressions\WhereExpressionVisitor.cs">
       <Link>Expressions\WhereExpressionVisitor.cs</Link>
     </Compile>

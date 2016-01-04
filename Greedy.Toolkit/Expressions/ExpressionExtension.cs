@@ -19,7 +19,7 @@ namespace Greedy.Toolkit.Expressions
                     break;
                 case ExpressionType.Call:
                     var methodExpr = expr as MethodCallExpression;
-                    result = methodExpr.Arguments.Aggregate(methodExpr.Object.IsConstant(), (r, e) => r && e.IsConstant());
+                    result = methodExpr.Arguments.Aggregate(methodExpr.Object != null && methodExpr.Object.IsConstant(), (r, e) => r && e.IsConstant());
                     break;
                 case ExpressionType.MemberAccess:
                     var memberExpr = expr as MemberExpression;

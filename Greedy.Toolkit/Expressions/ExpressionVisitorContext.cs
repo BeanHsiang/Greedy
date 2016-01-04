@@ -14,7 +14,7 @@ namespace Greedy.Toolkit.Expressions
         public QueryFragment Fragment { get; private set; }
         public IDictionary<string, object> Parameters { get; private set; }
         public IDictionary<Type, string> TableNames { get; private set; }
-
+        public Type ExportType { get; set; }
         internal bool UseTableAlias { get; set; }
         //internal bool UserColumnAlias { get; set; }
 
@@ -31,6 +31,14 @@ namespace Greedy.Toolkit.Expressions
             this.Generator = generator;
             this.Fragment = new QueryFragment();
             this.Parameters = new Dictionary<string, object>();
+            this.TableNames = new Dictionary<Type, string>();
+        }
+
+        private ExpressionVisitorContext(SqlGenerator generator, IDictionary<string, object> parameters)
+        {
+            this.Generator = generator;
+            this.Fragment = new QueryFragment();
+            this.Parameters = parameters;
             this.TableNames = new Dictionary<Type, string>();
         }
 
@@ -59,6 +67,11 @@ namespace Greedy.Toolkit.Expressions
         public string ToSql()
         {
             return this.Fragment.ToSql(this.Generator);
+        }
+
+        public ExpressionVisitorContext CopyTo()
+        {
+            return new ExpressionVisitorContext(this.Generator, this.Parameters) { UseTableAlias = true };
         }
     }
 }
