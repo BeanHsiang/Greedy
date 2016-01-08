@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,7 +15,9 @@ namespace Greedy.Toolkit.Expressions
         public QueryFragment Fragment { get; private set; }
         public IDictionary<string, object> Parameters { get; private set; }
         public IDictionary<Type, string> TableNames { get; private set; }
+        public Type ImportType { get; set; }
         public Type ExportType { get; set; }
+        public ICollection<Tuple<Type, string, Column>> TempColumnMappers { get; private set; }
         internal bool UseTableAlias { get; set; }
         //internal bool UserColumnAlias { get; set; }
 
@@ -24,6 +27,7 @@ namespace Greedy.Toolkit.Expressions
             this.Fragment = new QueryFragment();
             this.Parameters = new Dictionary<string, object>();
             this.TableNames = new Dictionary<Type, string>();
+            this.TempColumnMappers = new List<Tuple<Type, string, Column>>();
         }
 
         internal ExpressionVisitorContext(SqlGenerator generator)
@@ -32,6 +36,7 @@ namespace Greedy.Toolkit.Expressions
             this.Fragment = new QueryFragment();
             this.Parameters = new Dictionary<string, object>();
             this.TableNames = new Dictionary<Type, string>();
+            this.TempColumnMappers = new List<Tuple<Type, string, Column>>();
         }
 
         private ExpressionVisitorContext(SqlGenerator generator, IDictionary<string, object> parameters)
@@ -40,6 +45,16 @@ namespace Greedy.Toolkit.Expressions
             this.Fragment = new QueryFragment();
             this.Parameters = parameters;
             this.TableNames = new Dictionary<Type, string>();
+            this.TempColumnMappers = new List<Tuple<Type, string, Column>>();
+        }
+
+        private ExpressionVisitorContext(SqlGenerator generator, IDictionary<string, object> parameters, ICollection<Tuple<Type, string, Column>> tempColumnMappers)
+        {
+            this.Generator = generator;
+            this.Fragment = new QueryFragment();
+            this.Parameters = parameters;
+            this.TableNames = new Dictionary<Type, string>();
+            this.TempColumnMappers = tempColumnMappers;
         }
 
         public string AddParameter(object obj)
@@ -47,6 +62,18 @@ namespace Greedy.Toolkit.Expressions
             var name = string.Format("p{0}", Parameters.Count);
             this.Parameters.Add(name, obj);
             return Generator.DecorateParameter(name);
+        }
+
+        public void AddTempColumnMapper(Tuple<Type, string, Column> tempColumnMapper)
+        {
+            this.TempColumnMappers.Add(tempColumnMapper);
+        }
+
+        public Column GetMappedColumn(Type type, string memberName)
+        {
+            var tempMapper = this.TempColumnMappers.FirstOrDefault(m => m.Item1 == type && m.Item2 == memberName);
+
+            return tempMapper == null ? null : tempMapper.Item3;
         }
 
         public string GetTableAlias(Type type)
@@ -59,13 +86,34 @@ namespace Greedy.Toolkit.Expressions
             {
                 return TableNames[type];
             }
-            var name = string.Format("tb{0}", TableNames.Count);
+            var name = string.Format("t{0}", TableNames.Count);
             this.TableNames.Add(type, name);
             return name;
         }
 
         public string ToSql()
         {
+            if (this.Fragment.SelectPart.Count == 0)
+            {
+                var members = this.ExportType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                var typeMapper = TypeMapperCache.GetTypeMapper(this.ExportType);
+                var tableName = GetTableAlias(this.ExportType);
+                for (var i = 0; i < members.Length; i++)
+                {
+                    var member = members[i];
+                    var tempColumn = this.GetMappedColumn(this.ExportType, member.Name);
+                    if (tempColumn == null)
+                    {
+                        var columnMapper = typeMapper.AllMembers.SingleOrDefault(m => m.Name == member.Name);
+                        this.Fragment.SelectPart.Add(new MemberColumn(columnMapper.ColumnName, tableName, member.Name) { Type = member.ReflectedType });
+                    }
+                    else
+                    {
+                        tempColumn.Alias = member.Name;
+                        this.Fragment.SelectPart.Add(tempColumn);
+                    }
+                }
+            }
             return this.Fragment.ToSql(this.Generator);
         }
 
@@ -73,5 +121,7 @@ namespace Greedy.Toolkit.Expressions
         {
             return new ExpressionVisitorContext(this.Generator, this.Parameters) { UseTableAlias = true };
         }
+
+        public bool IsQueryResultChanged { get { return ImportType != ExportType; } }
     }
 }

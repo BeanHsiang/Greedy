@@ -17,6 +17,21 @@ namespace Greedy.Test
         public string Address { get; set; }
     }
 
+    class Article
+    {
+        public long Id { get; set; }
+        public string Name { get; set; }
+        public string Content { get; set; }
+        public long AuthorId { get; set; }
+        public long CatetoryId { get; set; }
+    }
+
+    class Category
+    {
+        public long Id { get; set; }
+        public string Name { get; set; }
+    }
+
     [TestClass]
     public class DapperTest
     {
@@ -183,7 +198,7 @@ namespace Greedy.Test
         public void TestGetWithLocalVariable()
         {
             var age = 30;
-            var sql = "select count(id) from person where age > " + age;
+            var sql = "select count(id) from person where age >= " + age + " and age < 100";
             var rowsCount = con.ExecuteScalar<int>(sql);
 
             var count = con.Get<Person>(p => p.Age >= age && p.Age < 100).Count();
@@ -196,12 +211,12 @@ namespace Greedy.Test
             var age = 30;
             var man = new { Age = 30 };
             var person = new Person { Age = 30 };
-            var sql = "select count(id) from person where age > " + age;
+            var sql = "select count(id) from person where age >= " + age + " and age < 100";
             var rowsCount = con.ExecuteScalar<int>(sql);
 
-            var count1 = con.Get<Person>(p => p.Age >= man.Age && p.Age - 1 < 100).Count();
+            var count1 = con.Get<Person>(p => p.Age >= man.Age && p.Age < 100).Count();
             Assert.AreEqual(rowsCount, count1, "获取带本地类实例变量的查询失败");
-            var count2 = con.Get<Person>(p => p.Age >= person.Age && p.Age - 1 < 100).Count();
+            var count2 = con.Get<Person>(p => p.Age >= person.Age && p.Age < 100).Count();
             Assert.AreEqual(rowsCount, count2, "获取带本地匿名类实例变量的查询失败");
         }
 
@@ -234,11 +249,54 @@ namespace Greedy.Test
             var arr4 = con.Predicate<Person>().Where(p => p.Age > 30 && p.Age < 90).Select(p => new { p.Id, p.Name }).Skip(2).Take(10).ToList();
             Assert.AreNotEqual(0, arr4.Count, "Linq单表带Where带分页匿名查询失败");
 
-            var arr5 = con.Predicate<Person>().Where(p => p.Age > 30 && p.Age < 90).Count(p=>p.Address.Contains("address"));
+            var arr5 = con.Predicate<Person>().Where(p => p.Age > 30 && p.Age < 90).Count(p => p.Address.Contains("address"));
             Assert.AreNotEqual(0, arr5, "Linq单表带Where求行数查询失败");
 
             var arr6 = con.Predicate<Person>().Where(p => p.Age > 30 && p.Age < 90).Any();
             Assert.IsTrue(arr6, "Linq单表带Where求是否存在查询失败");
+        }
+
+        [TestMethod]
+        public void TestSimpleTablesLinq()
+        {
+            var query = from p in con.Predicate<Person>()
+                        from art in con.Predicate<Article>()
+                        from cat in con.Predicate<Category>()
+                        //join art in con.Predicate<Article>() on p.Id equals art.AuthorId
+                        where p.Id == art.AuthorId && art.CatetoryId == cat.Id
+                        select new { art.Id, art.Name, AuthorName = p.Name, CategoryName = cat.Name };
+
+            var query2 = from art in con.Predicate<Article>()
+                         join p in con.Predicate<Person>() on art.AuthorId equals p.Id
+                         join cat in con.Predicate<Category>() on art.CatetoryId equals cat.Id
+                         select new { art.Id, art.Name, AuthorName = p.Name, CategoryName = cat.Name };
+
+
+            //var nonEquijoinQuery =
+            //    from art in con.Predicate<Article>()
+            //    let catIds = from c in con.Predicate<Category>()
+            //                 select c.Id
+            //    where catIds.Contains(art.CatetoryId) == true
+            //    select new { Product = art.Name, CategoryID = art.CatetoryId }; 
+            Assert.AreNotEqual(0, query2.Count(), "简单连接多表Linq查询失败");
+        }
+
+        [TestMethod]
+        public void TestInnerJoinTablesLinq()
+        {
+            //var arr = con.Predicate<Person>()
+            //    .Join(con.Predicate<Article>(), p => new { Id = p.Id, p.Name }, t => new { Id = t.AuthorId, t.Name }, (p, t) => new { t.AuthorId, AuthorName = p.Name, t.Name })
+            //    .ToList();
+            //var arr = con.Predicate<Person>()
+            //   .Join(con.Predicate<Article>(), p => new { Id = p.Id, p.Name }, t => new { Id = t.AuthorId, t.Name }, (p, t) => new { Person = p, Article = t })
+            //   .Join(con.Predicate<Category>(), p => p.Article.CatetoryId, t => t.Id, (p, t) => new { Id = p.Article.Id, AuthorName = p.Person.Name, CategoryName = t.Name })
+            //   .ToList();
+
+            var arr = con.Predicate<Person>()
+               .Join(con.Predicate<Article>(), p => new { Id = p.Id, p.Name }, t => new { Id = t.AuthorId, t.Name }, (p, t) => new { AuthorName = p.Name, ArticleId = t.Id, CategoryId = t.CatetoryId })
+               .Join(con.Predicate<Category>(), p => p.CategoryId, t => t.Id, (p, t) => new { Id = p.ArticleId, AuthorName = p.AuthorName, CategoryName = t.Name })
+               .ToList();
+            Assert.AreNotEqual(0, arr.Count, "InnerJoin多表Linq查询失败");
         }
     }
 }

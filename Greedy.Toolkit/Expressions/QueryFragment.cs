@@ -23,6 +23,76 @@ namespace Greedy.Toolkit.Expressions
             this.OrderPart = new List<OrderCondition>();
         }
 
+        public bool HasOnlyParts(QueryPart parts)
+        {
+            var result = true;
+            var oppositeResult = true;
+            if ((parts & QueryPart.Select) > 0)
+            {
+                result &= SelectPart.Count > 0;
+            }
+            else
+            {
+                oppositeResult &= SelectPart.Count > 0;
+            }
+
+            if ((parts & QueryPart.From) > 0)
+            {
+                result &= FromPart.Count > 0;
+            }
+            else
+            {
+                oppositeResult &= FromPart.Count > 0;
+            }
+
+            if ((parts & QueryPart.Where) > 0)
+            {
+                result &= WherePart == null;
+            }
+            else
+            {
+                oppositeResult &= WherePart == null;
+            }
+
+            //if ((parts & QueryPart.GroupBy) > 0)
+            //{
+
+            //}
+            //else
+            //{
+
+            //} 
+
+            if ((parts & QueryPart.OrderBy) > 0)
+            {
+                result &= OrderPart.Count > 0;
+            }
+            else
+            {
+                oppositeResult &= OrderPart.Count > 0;
+            }
+
+            if ((parts & QueryPart.Skip) > 0)
+            {
+                result &= Skip.HasValue;
+            }
+            else
+            {
+                oppositeResult &= Skip.HasValue;
+            }
+
+            if ((parts & QueryPart.Take) > 0)
+            {
+                result &= Take.HasValue;
+            }
+            else
+            {
+                oppositeResult &= Take.HasValue;
+            }
+
+            return result && !oppositeResult;
+        }
+
         public string ToSql(SqlGenerator generator)
         {
             var sb = new StringBuilder();
@@ -64,6 +134,18 @@ namespace Greedy.Toolkit.Expressions
 
             return sb.ToString();
         }
+    }
+
+    [Flags]
+    enum QueryPart
+    {
+        Select = 0x01,
+        From = 0x02,
+        Where = 0x04,
+        GroupBy = 0x08,
+        OrderBy = 0x10,
+        Skip = 0x20,
+        Take = 0x40,
     }
 
     abstract class Table
@@ -126,6 +208,56 @@ namespace Greedy.Toolkit.Expressions
             sb.AppendFormat("({0})", InnerFragment.ToSql(generator));
             if (!string.IsNullOrEmpty(this.Alias))
                 sb.AppendFormat(" AS {0}", Alias);
+            return sb.ToString();
+        }
+    }
+
+    enum JoinMode
+    {
+        Default,
+        InnerJoin,
+        LeftJoin
+    }
+
+    class JoinTable : Table
+    {
+        public Table Table { get; set; }
+
+        public JoinMode JoinMode { get; set; }
+
+        public Condition JoinCondition { get; set; }
+
+        public JoinTable(Table table, string alias)
+            : base(alias)
+        {
+            this.Table = table;
+        }
+
+        public JoinTable(Table table)
+            : base(null)
+        {
+            this.Table = table;
+        }
+
+        private string GetJoinSql(JoinMode mode)
+        {
+            if (mode == JoinMode.Default) return ",";
+            if (mode == JoinMode.InnerJoin) return "Inner Join";
+            if (mode == JoinMode.LeftJoin) return "Left Join";
+            else return "";
+        }
+
+        public override string ToSql(SqlGenerator generator)
+        {
+            var sb = new StringBuilder();
+            sb.AppendFormat("{0} ", GetJoinSql(JoinMode));
+            sb.Append(Table.ToSql(generator));
+            if (!string.IsNullOrEmpty(this.Alias))
+                sb.AppendFormat(" AS {0}", Alias);
+            if (JoinMode != JoinMode.Default)
+            {
+                sb.AppendFormat(" On {0}", JoinCondition.ToSql(generator));
+            }
             return sb.ToString();
         }
     }

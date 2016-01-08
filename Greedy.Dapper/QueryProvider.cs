@@ -13,7 +13,6 @@ namespace Greedy.Dapper
     public class QueryProvider : IQueryProvider
     {
         Expression _expression;
-        Type _elementType;
         IDbConnection _connection;
         public QueryProvider(IDbConnection connection)
         {
@@ -58,8 +57,8 @@ namespace Greedy.Dapper
                 switch (method.Name)
                 {
                     case "Any":
-                    case "Average":
-                    case "Sum":
+                    //case "Average":
+                    //case "Sum":
                     case "Count":
                         var returnMethod = typeof(SqlMapper).GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static).FirstOrDefault(x => x.Name == "ExecuteScalar" && x.IsGenericMethodDefinition).MakeGenericMethod(type);
                         var param0 = Expression.Parameter(typeof(IDbConnection));

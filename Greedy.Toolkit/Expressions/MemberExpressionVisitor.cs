@@ -12,18 +12,34 @@ namespace Greedy.Toolkit.Expressions
     {
         public Column Column { get; private set; }
 
+        public bool UseColumnAlias { get; set; }
+
         internal MemberExpressionVisitor(ExpressionVisitorContext context)
             : base(context)
-        { }
+        {
+            UseColumnAlias = false;
+        }
+
+        internal MemberExpressionVisitor(ExpressionVisitorContext context, bool useColumnAlias)
+            : base(context)
+        {
+            UseColumnAlias = useColumnAlias;
+        }
 
         protected override Expression VisitMember(MemberExpression node)
         {
             if (node.Expression.NodeType == ExpressionType.Parameter)
             {
                 var type = node.Member.DeclaringType;
-                var typeMapper = TypeMapperCache.GetTypeMapper(type);
-                var columnMapper = typeMapper.AllMembers.SingleOrDefault(m => m.Name == node.Member.Name);
-                this.Column = new MemberColumn(columnMapper.ColumnName, Context.GetTableAlias(type)) { Type = node.Type };
+                var tempColumn = this.Context.GetMappedColumn(type, node.Member.Name);
+                if (tempColumn == null)
+                {
+                    var typeMapper = TypeMapperCache.GetTypeMapper(type);
+                    var columnMapper = typeMapper.AllMembers.SingleOrDefault(m => m.Name == node.Member.Name);
+                    this.Column = new MemberColumn(columnMapper.ColumnName, Context.GetTableAlias(type), UseColumnAlias ? node.Member.Name : null) { Type = node.Type };
+                }
+                else
+                    this.Column = tempColumn;
             }
             else
             {
@@ -47,6 +63,6 @@ namespace Greedy.Toolkit.Expressions
             visitor.Visit(node);
             Column = visitor.Column;
             return node;
-        }   
+        }
     }
 }

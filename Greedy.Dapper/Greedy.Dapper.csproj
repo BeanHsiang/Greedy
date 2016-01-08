@@ -55,6 +55,9 @@
     <Compile Include="..\Greedy.Toolkit\Expressions\ExpressionVisitorContext.cs">
       <Link>Expressions\ExpressionVisitorContext.cs</Link>
     </Compile>
+    <Compile Include="..\Greedy.Toolkit\Expressions\JoinExpressionVisitor.cs">
+      <Link>Expressions\JoinExpressionVisitor.cs</Link>
+    </Compile>
     <Compile Include="..\Greedy.Toolkit\Expressions\MemberExpressionVisitor.cs">
       <Link>Expressions\MemberExpressionVisitor.cs</Link>
     </Compile>

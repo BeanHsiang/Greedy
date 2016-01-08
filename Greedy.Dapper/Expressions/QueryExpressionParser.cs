@@ -38,12 +38,13 @@ namespace Greedy.Toolkit.Expressions
             {
                 case "Where":
                     this.Visit(node.Arguments[0]);
-                    var whereVisitor = new WhereExpressionVisitor(context);
-                    whereVisitor.Visit(node.Arguments[1]);
-                    if (this.context.Fragment.WherePart == null)
-                        this.context.Fragment.WherePart = whereVisitor.Condition;
-                    else
-                        this.context.Fragment.WherePart = this.context.Fragment.WherePart.Concat(whereVisitor.Condition);
+                    if (this.context.IsQueryResultChanged)
+                    {
+                        var oldContext = this.context;
+                        this.context = oldContext.CopyTo();
+                        this.context.Fragment.FromPart.Add(new QueryTable(oldContext.Fragment, this.context.GetTableAlias(oldContext.ExportType)));
+                    }
+                    ParseWhereExpresson(node.Arguments[1]);
                     break;
                 case "Select":
                     this.Visit(node.Arguments[0]);
@@ -75,15 +76,11 @@ namespace Greedy.Toolkit.Expressions
                     parser.Visit(node.Arguments[0]);
                     this.context.Fragment.FromPart.Add(new QueryTable(parser.context.Fragment, this.context.GetTableAlias(parser.ExportType)));
                     if (node.Arguments.Count > 1)
-                    {
-                        var whereInCountVisitor = new WhereExpressionVisitor(context);
-                        whereInCountVisitor.Visit(node.Arguments[1]);
-                        if (this.context.Fragment.WherePart == null)
-                            this.context.Fragment.WherePart = whereInCountVisitor.Condition;
-                        else
-                            this.context.Fragment.WherePart = this.context.Fragment.WherePart.Concat(whereInCountVisitor.Condition);
-                    }
+                        ParseWhereExpresson(node.Arguments[1]);
                     this.context.Fragment.SelectPart.Add(new FunctionColumn() { Formatter = "Count(*)" });
+                    break;
+                case "Join":
+                    ParseJoinExpression(node);
                     break;
                 default:
                     break;
@@ -116,7 +113,7 @@ namespace Greedy.Toolkit.Expressions
             if (node.Type.GetGenericTypeDefinition() == typeof(DataQuery<>))
             {
                 var elementType = node.Type.GetGenericArguments()[0];
-                this.context.ExportType = elementType;
+                this.context.ExportType = this.context.ImportType = elementType;
                 var typeMapper = TypeMapperCache.GetTypeMapper(elementType);
                 this.context.Fragment.FromPart.Add(new SingleTable(typeMapper.TableName, this.context.GetTableAlias(elementType)));
             }
@@ -126,6 +123,48 @@ namespace Greedy.Toolkit.Expressions
         internal string ToSql()
         {
             return context.ToSql();
+        }
+
+        private void ParseWhereExpresson(Expression node)
+        {
+            var visitor = new WhereExpressionVisitor(context);
+            visitor.Visit(node);
+            if (this.context.Fragment.WherePart == null)
+                this.context.Fragment.WherePart = visitor.Condition;
+            else
+                this.context.Fragment.WherePart = this.context.Fragment.WherePart.Concat(visitor.Condition);
+        }
+
+        private void ParseJoinExpression(Expression node)
+        {
+            var methodExpression = node as MethodCallExpression;
+            Visit(methodExpression.Arguments[0]);
+            if (!this.context.Fragment.HasOnlyParts(QueryPart.From))
+            {
+                var oldContext = this.context;
+                this.context = oldContext.CopyTo();
+                var queryTable = new QueryTable(oldContext.Fragment, this.context.GetTableAlias(oldContext.ExportType));
+                this.context.Fragment.FromPart.Add(queryTable);
+            }
+
+            var joinContext = this.context.CopyTo();
+            var joinParser = new QueryExpressionParser(this.connection, joinContext);
+            joinParser.Parse(methodExpression.Arguments[1]);
+
+            Table table;
+            if (joinContext.Fragment.HasOnlyParts(QueryPart.From) && joinContext.Fragment.FromPart.Count == 1)
+            {
+                table = joinContext.Fragment.FromPart.First();
+                table.Alias = this.context.GetTableAlias(joinContext.ExportType);
+            }
+            else
+            {
+                table = new QueryTable(joinContext.Fragment, this.context.GetTableAlias(joinContext.ExportType));
+            }
+
+            var joinVisitor = new JoinExpressionVisitor(this.context);
+            joinVisitor.Parse(methodExpression.Arguments[2], methodExpression.Arguments[3], methodExpression.Arguments[4]);
+            this.context.Fragment.FromPart.Add(new JoinTable(table) { JoinMode = JoinMode.InnerJoin, JoinCondition = joinVisitor.Condition });
         }
 
         internal IDictionary<string, object> Parameters { get { return context.Parameters; } }
