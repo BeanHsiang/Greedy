@@ -47,13 +47,19 @@ namespace Greedy.Toolkit.Expressions
             Visit(result);
         }
 
+        public void Parse(Expression result)
+        {
+            step = 3;
+            Visit(result);
+        }
+
         protected override Expression VisitNew(NewExpression node)
         {
             for (int i = 0, len = node.Arguments.Count; i < len; i++)
             {
                 var arg = node.Arguments[i];
                 Visit(arg);
-                if (step == 3)
+                if (step == 3 && currentColumn != null)
                 {
                     this.Context.AddTempColumnMapper(new Tuple<Type, string, Column>(node.Members[i].DeclaringType, node.Members[i].Name, currentColumn));
                 }
@@ -92,6 +98,14 @@ namespace Greedy.Toolkit.Expressions
                 //visitor.Column.Alias = node.Member.Name;
                 currentColumn = visitor.Column;
             }
+            return node;
+        }
+
+        protected override Expression VisitMethodCall(MethodCallExpression node)
+        {
+            var visitor = new MethodCallExpressionVisitor(this.Context);
+            visitor.Visit(node);
+            currentColumn = visitor.Column;
             return node;
         }
     }

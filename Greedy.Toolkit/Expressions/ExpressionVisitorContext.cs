@@ -93,6 +93,16 @@ namespace Greedy.Toolkit.Expressions
 
         public string ToSql()
         {
+            return WrapToFragment().ToSql(this.Generator);
+        }
+
+        public ExpressionVisitorContext CopyTo()
+        {
+            return new ExpressionVisitorContext(this.Generator, this.Parameters) { UseTableAlias = true };
+        }
+
+        public QueryFragment WrapToFragment()
+        {
             if (this.Fragment.SelectPart.Count == 0)
             {
                 var members = this.ExportType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
@@ -114,14 +124,9 @@ namespace Greedy.Toolkit.Expressions
                     }
                 }
             }
-            return this.Fragment.ToSql(this.Generator);
+            return this.Fragment;
         }
 
-        public ExpressionVisitorContext CopyTo()
-        {
-            return new ExpressionVisitorContext(this.Generator, this.Parameters) { UseTableAlias = true };
-        }
-
-        public bool IsQueryResultChanged { get { return ImportType != ExportType; } }
+        public bool IsQueryResultChanged { get { return this.Fragment.SelectPart.Count > 0; } } //ImportType != ExportType
     }
 }

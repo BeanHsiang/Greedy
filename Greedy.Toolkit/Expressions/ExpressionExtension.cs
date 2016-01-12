@@ -29,5 +29,14 @@ namespace Greedy.Toolkit.Expressions
             }
             return result;
         }
+
+        public static bool IsParameter(this Expression expr)
+        {
+            if (expr.NodeType == ExpressionType.Parameter)
+                return true;
+            if (expr.NodeType == ExpressionType.MemberAccess)
+                return (expr as MemberExpression).Expression.IsParameter();
+            return false;
+        }
     }
 }

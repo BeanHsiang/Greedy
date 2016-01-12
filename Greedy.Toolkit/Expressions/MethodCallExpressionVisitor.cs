@@ -24,6 +24,9 @@ namespace Greedy.Toolkit.Expressions
                     case "Contains":
                         ParseMethodContains(node);
                         break;
+                    case "Count":
+                        ParseMethodCount(node);
+                        break;
                 }
             }
             else
@@ -59,6 +62,18 @@ namespace Greedy.Toolkit.Expressions
                 column.Add(paramVisitor.Column);
                 this.Column = column;
             }
+        }
+
+        private void ParseMethodCount(MethodCallExpression node)
+        {
+            var column = new FunctionColumn();
+            column.Formatter = "Count(*)";
+
+            //var paramVisitor = new MemberExpressionVisitor(Context);
+            //paramVisitor.Visit(node.Arguments[0]);
+            //column.Add(paramVisitor.Column);
+            this.Column = column;
+            this.Column.Alias = (node.Arguments[0] as ParameterExpression).Name;
         }
     }
 }

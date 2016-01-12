@@ -257,32 +257,40 @@ namespace Greedy.Test
         }
 
         [TestMethod]
-        public void TestSimpleTablesLinq()
+        public void TestCrossJoinTablesLinq()
         {
             var query = from p in con.Predicate<Person>()
-                        from art in con.Predicate<Article>()
+                        from art in con.Predicate<Article>().Where(a => a.Content.Contains("test"))
                         from cat in con.Predicate<Category>()
-                        //join art in con.Predicate<Article>() on p.Id equals art.AuthorId
                         where p.Id == art.AuthorId && art.CatetoryId == cat.Id
                         select new { art.Id, art.Name, AuthorName = p.Name, CategoryName = cat.Name };
-
-            var query2 = from art in con.Predicate<Article>()
-                         join p in con.Predicate<Person>() on art.AuthorId equals p.Id
-                         join cat in con.Predicate<Category>() on art.CatetoryId equals cat.Id
-                         select new { art.Id, art.Name, AuthorName = p.Name, CategoryName = cat.Name };
-
-
             //var nonEquijoinQuery =
             //    from art in con.Predicate<Article>()
             //    let catIds = from c in con.Predicate<Category>()
             //                 select c.Id
             //    where catIds.Contains(art.CatetoryId) == true
             //    select new { Product = art.Name, CategoryID = art.CatetoryId }; 
-            Assert.AreNotEqual(0, query2.Count(), "简单连接多表Linq查询失败");
+            Assert.AreNotEqual(0, query.Count(), "简单连接多表Linq查询失败");
         }
 
         [TestMethod]
         public void TestInnerJoinTablesLinq()
+        {
+            var query2 = from art in con.Predicate<Article>()
+                         join p in con.Predicate<Person>() on art.AuthorId equals p.Id
+                         join cat in con.Predicate<Category>() on art.CatetoryId equals cat.Id
+                         select new { art.Id, art.Name, AuthorName = p.Name, CategoryName = cat.Name };
+            Assert.AreNotEqual(0, query2.Count(), "InnerJoin多表Linq查询失败");
+
+            var arr = con.Predicate<Person>()
+               .Join(con.Predicate<Article>(), p => new { Id = p.Id, p.Name }, t => new { Id = t.AuthorId, t.Name }, (p, t) => new { AuthorName = p.Name, ArticleId = t.Id, CategoryId = t.CatetoryId })
+               .Join(con.Predicate<Category>(), p => p.CategoryId, t => t.Id, (p, t) => new { Id = p.ArticleId, AuthorName = p.AuthorName, CategoryName = t.Name })
+               .ToList();
+            Assert.AreNotEqual(0, arr.Count, "InnerJoin多表Linq查询失败");
+        }
+
+        [TestMethod]
+        public void TestLeftJoinTablesLinq()
         {
             //var arr = con.Predicate<Person>()
             //    .Join(con.Predicate<Article>(), p => new { Id = p.Id, p.Name }, t => new { Id = t.AuthorId, t.Name }, (p, t) => new { t.AuthorId, AuthorName = p.Name, t.Name })
@@ -291,17 +299,26 @@ namespace Greedy.Test
             //   .Join(con.Predicate<Article>(), p => new { Id = p.Id, p.Name }, t => new { Id = t.AuthorId, t.Name }, (p, t) => new { Person = p, Article = t })
             //   .Join(con.Predicate<Category>(), p => p.Article.CatetoryId, t => t.Id, (p, t) => new { Id = p.Article.Id, AuthorName = p.Person.Name, CategoryName = t.Name })
             //   .ToList();
+            var arr = from p in con.Predicate<Person>()
+                      join art in con.Predicate<Article>() on p.Id equals art.AuthorId into articles
+                      from ar in articles.DefaultIfEmpty()
+                      select new { Name = p.Name, ArticleName = ar.Name };
 
-            var arr = con.Predicate<Person>()
-               .Join(con.Predicate<Article>(), p => new { Id = p.Id, p.Name }, t => new { Id = t.AuthorId, t.Name }, (p, t) => new { AuthorName = p.Name, ArticleId = t.Id, CategoryId = t.CatetoryId })
-               .Join(con.Predicate<Category>(), p => p.CategoryId, t => t.Id, (p, t) => new { Id = p.ArticleId, AuthorName = p.AuthorName, CategoryName = t.Name })
-               .ToList();
-            Assert.AreNotEqual(0, arr.Count, "InnerJoin多表Linq查询失败");
+            Assert.AreNotEqual(0, arr.ToArray().Count(), "LeftJoin多表Linq查询失败");
+
+            var arr2 = from p in con.Predicate<Person>()
+                       join art in con.Predicate<Article>() on p.Id equals art.AuthorId into articles
+                       select new { Name = p.Name, Count = articles.Count() };
+
+            Assert.AreNotEqual(0, arr2.ToArray().Count(), "LeftJoin多表Linq查询失败");
+            //var arr = con.Predicate<Person>()
+            //   .GroupJoin(con.Predicate<Article>(), p => new { Id = p.Id, p.Name }, t => new { Id = t.AuthorId, t.Name }, (p, t) => new { AuthorName = p.Name, ArticleId = t.Id, CategoryId = t.CatetoryId }) 
+            //   .Join(con.Predicate<Category>(), p => p.CategoryId, t => t.Id, (p, t) => new { Id = p.ArticleId, AuthorName = p.AuthorName, CategoryName = t.Name })
+            //   .ToList();
+
         }
     }
 }
-
-
 
 //Console.WriteLine(cnn.Get<Person>(p => ids.Contains(p.Id) && "hz".IndexOf(p.Address) > -1).Count());
 //Console.WriteLine(cnn.Get<Person>(p => ids.Contains(p.Id) && ids[0] > p.Id).Count());

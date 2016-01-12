@@ -23,6 +23,41 @@ namespace Greedy.Toolkit.Expressions
             this.OrderPart = new List<OrderCondition>();
         }
 
+        public int PartsCount(QueryPart parts)
+        {
+            if ((parts & QueryPart.Select) > 0)
+            {
+                return SelectPart.Count;
+            }
+
+            if ((parts & QueryPart.From) > 0)
+            {
+                return FromPart.Count;
+            }
+
+            if ((parts & QueryPart.Where) > 0)
+            {
+                return WherePart == null ? 0 : 1;
+            }
+
+            if ((parts & QueryPart.OrderBy) > 0)
+            {
+                return OrderPart.Count;
+            }
+
+            if ((parts & QueryPart.Skip) > 0)
+            {
+                return Skip.Value;
+            }
+
+            if ((parts & QueryPart.Take) > 0)
+            {
+                return Take.Value;
+            }
+
+            return 0;
+        }
+
         public bool HasOnlyParts(QueryPart parts)
         {
             var result = true;
@@ -91,6 +126,11 @@ namespace Greedy.Toolkit.Expressions
             }
 
             return result && !oppositeResult;
+        }
+
+        public bool HasAnyParts()
+        {
+            return SelectPart.Count > 0 || FromPart.Count > 0 || WherePart != null || OrderPart.Count > 0 || Skip.HasValue || Take.HasValue;
         }
 
         public string ToSql(SqlGenerator generator)
@@ -329,7 +369,14 @@ namespace Greedy.Toolkit.Expressions
 
         public override string ToSql(SqlGenerator generator)
         {
-            return string.Format(this.Formatter, this.Parameters.Select(p => p.ToSql(generator)).ToArray());
+            var sb = new StringBuilder();
+            if (this.Parameters != null && this.Parameters.Any())
+                sb.AppendFormat(this.Formatter, this.Parameters.Select(p => p.ToSql(generator)).ToArray());
+            else
+                sb.Append(this.Formatter);
+            if (!string.IsNullOrEmpty(this.Alias))
+                sb.AppendFormat(" AS {0}", Alias);
+            return sb.ToString();
         }
     }
 

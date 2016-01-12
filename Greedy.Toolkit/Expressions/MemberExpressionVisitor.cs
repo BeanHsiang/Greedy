@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -28,9 +29,20 @@ namespace Greedy.Toolkit.Expressions
 
         protected override Expression VisitMember(MemberExpression node)
         {
-            if (node.Expression.NodeType == ExpressionType.Parameter)
+            if (node.Expression.IsParameter())
             {
                 var type = node.Member.DeclaringType;
+                if (node.Member.MemberType == MemberTypes.Property)
+                {
+                    var property = node.Member as PropertyInfo;
+                    if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                    {
+                        type = property.PropertyType.GenericTypeArguments.First();
+                        this.Column = new MemberColumn("*", null, UseColumnAlias ? node.Member.Name : null) { Type = node.Type };
+                        return node;
+                    }
+                }
+
                 var tempColumn = this.Context.GetMappedColumn(type, node.Member.Name);
                 if (tempColumn == null)
                 {
@@ -62,6 +74,17 @@ namespace Greedy.Toolkit.Expressions
             var visitor = new MethodCallExpressionVisitor(this.Context);
             visitor.Visit(node);
             Column = visitor.Column;
+            return node;
+        }
+
+        protected override Expression VisitParameter(ParameterExpression node)
+        {
+            if (node.Type.IsGenericType && node.Type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+            {
+                var type = node.Type.GenericTypeArguments.First();
+                this.Column = new MemberColumn("*", null, UseColumnAlias ? node.Name : null) { Type = node.Type };
+                return node;
+            }
             return node;
         }
     }
