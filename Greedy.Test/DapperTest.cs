@@ -314,8 +314,19 @@ namespace Greedy.Test
             //var arr = con.Predicate<Person>()
             //   .GroupJoin(con.Predicate<Article>(), p => new { Id = p.Id, p.Name }, t => new { Id = t.AuthorId, t.Name }, (p, t) => new { AuthorName = p.Name, ArticleId = t.Id, CategoryId = t.CatetoryId }) 
             //   .Join(con.Predicate<Category>(), p => p.CategoryId, t => t.Id, (p, t) => new { Id = p.ArticleId, AuthorName = p.AuthorName, CategoryName = t.Name })
-            //   .ToList();
+            //   .ToList(); 
+        }
 
+        [TestMethod]
+        public void TestLeftInnerJoinTablesLinq()
+        {
+            var arr = from art in con.Predicate<Article>()
+                      join cat in con.Predicate<Category>() on art.CatetoryId equals cat.Id
+                      join p in con.Predicate<Person>() on art.AuthorId equals p.Id into persons
+                      from ps in persons.DefaultIfEmpty()
+                      select new { Name = ps.Name, ArticleName = art.Name };
+
+            Assert.AreNotEqual(0, arr.ToArray().Count(), "LeftInner多表Linq查询失败");
         }
     }
 }
