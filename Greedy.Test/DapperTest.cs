@@ -328,6 +328,16 @@ namespace Greedy.Test
 
             Assert.AreNotEqual(0, arr.ToArray().Count(), "LeftInner多表Linq查询失败");
         }
+
+        [TestMethod]
+        public void TestGroupByLinq()
+        {
+            var arr = from p in con.Predicate<Person>()
+                      group p by new { p.Age, p.Address } into ages
+                      select new { ages.Key.Age, MaxId = ages.Max(p => p.Id) };
+
+            Assert.AreNotEqual(0, arr.ToArray().Count(), "LeftInner多表Linq查询失败");
+        }
     }
 }
 

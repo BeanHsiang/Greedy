@@ -46,6 +46,7 @@
     <Compile Include="Expressions\ExpressionExtension.cs" />
     <Compile Include="Expressions\ExpressionVisitorBase.cs" />
     <Compile Include="Expressions\ExpressionVisitorContext.cs" />
+    <Compile Include="Expressions\GroupByExpressionVisitor.cs" />
     <Compile Include="Expressions\JoinExpressionVisitor.cs" />
     <Compile Include="Expressions\MemberExpressionVisitor.cs" />
     <Compile Include="Expressions\MethodCallExpressionVisitor.cs" />

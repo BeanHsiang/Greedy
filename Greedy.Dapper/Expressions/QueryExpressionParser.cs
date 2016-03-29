@@ -88,6 +88,9 @@ namespace Greedy.Toolkit.Expressions
                 case "SelectMany":
                     ParseSelectManyExpression(node);
                     break;
+                case "GroupBy":
+                    ParseGroupByExpression(node);
+                    break;
                 case "Predicate":
                     if (node.Arguments[0].Type == typeof(IDbConnection))
                     {
@@ -220,6 +223,21 @@ namespace Greedy.Toolkit.Expressions
 
             if (table != null)
                 this.context.Fragment.FromPart.Add(new JoinTable(table) { JoinMode = JoinMode.Default });
+        }
+
+        private void ParseGroupByExpression(MethodCallExpression node)
+        {
+            this.Visit(node.Arguments[0]);
+            if (this.context.IsQueryResultChanged)
+            {
+                var oldContext = this.context;
+                this.context = oldContext.CopyTo();
+                this.context.Fragment.FromPart.Add(new QueryTable(oldContext.WrapToFragment(), this.context.GetTableAlias(oldContext.ExportType)));
+            }
+
+            var groupVisitor = new GroupByExpressionVisitor(this.context);
+            groupVisitor.Parse(node.Arguments[1]);
+            this.context.Fragment.GroupPart = groupVisitor.Columns;
         }
 
         internal IDictionary<string, object> Parameters { get { return context.Parameters; } }
