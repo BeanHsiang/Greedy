@@ -103,6 +103,10 @@ namespace Greedy.Toolkit.Expressions
 
         public QueryFragment WrapToFragment()
         {
+            //if (this.Fragment.SelectPart == null)
+            //{
+            //    this.Fragment.SelectPart = new List<Column>();
+            //}
             if (this.Fragment.SelectPart.Count == 0)
             {
                 var members = this.ExportType.GetProperties(BindingFlags.Public | BindingFlags.Instance);

@@ -12,6 +12,7 @@ namespace Greedy.Toolkit.Expressions
         public ICollection<Column> SelectPart { get; set; }
         public Condition WherePart { get; set; }
         public ICollection<Table> FromPart { get; set; }
+        public ICollection<Column> GroupPart { get; set; }
         public ICollection<OrderCondition> OrderPart { get; set; }
         public int? Skip { get; set; }
         public int? Take { get; set; }
@@ -21,6 +22,7 @@ namespace Greedy.Toolkit.Expressions
             this.SelectPart = new List<Column>();
             this.FromPart = new List<Table>();
             this.OrderPart = new List<OrderCondition>();
+            this.GroupPart = new List<Column>();
         }
 
         public int PartsCount(QueryPart parts)
@@ -38,6 +40,11 @@ namespace Greedy.Toolkit.Expressions
             if ((parts & QueryPart.Where) > 0)
             {
                 return WherePart == null ? 0 : 1;
+            }
+
+            if ((parts & QueryPart.GroupBy) > 0)
+            {
+                return GroupPart.Count;
             }
 
             if ((parts & QueryPart.OrderBy) > 0)
@@ -89,14 +96,14 @@ namespace Greedy.Toolkit.Expressions
                 oppositeResult &= WherePart == null;
             }
 
-            //if ((parts & QueryPart.GroupBy) > 0)
-            //{
-
-            //}
-            //else
-            //{
-
-            //} 
+            if ((parts & QueryPart.GroupBy) > 0)
+            {
+                result &= GroupPart.Count > 0;
+            }
+            else
+            {
+                oppositeResult &= GroupPart.Count > 0;
+            }
 
             if ((parts & QueryPart.OrderBy) > 0)
             {
@@ -130,7 +137,7 @@ namespace Greedy.Toolkit.Expressions
 
         public bool HasAnyParts()
         {
-            return SelectPart.Count > 0 || FromPart.Count > 0 || WherePart != null || OrderPart.Count > 0 || Skip.HasValue || Take.HasValue;
+            return SelectPart.Count > 0 || FromPart.Count > 0 || WherePart != null || GroupPart.Count > 0 || OrderPart.Count > 0 || Skip.HasValue || Take.HasValue;
         }
 
         public string ToSql(SqlGenerator generator)
@@ -153,6 +160,13 @@ namespace Greedy.Toolkit.Expressions
             if (WherePart != null)
             {
                 sb.AppendFormat("Where {0}", WherePart.ToSql(generator));
+            }
+
+            if (GroupPart.Any())
+            {
+                sb.Append(" Group By ");
+                sb = GroupPart.Aggregate(sb, (s, o) => s.AppendFormat("{0},", o.ToSql(generator, false)));
+                sb.Remove(sb.Length - 1, 1);
             }
 
             if (OrderPart.Any())
@@ -306,7 +320,7 @@ namespace Greedy.Toolkit.Expressions
     {
         public string Alias { get; set; }
         public Type Type { get; set; }
-        public abstract string ToSql(SqlGenerator generator);
+        public abstract string ToSql(SqlGenerator generator, bool withAlias = true);
 
         public Column(string alias)
         {
@@ -333,13 +347,13 @@ namespace Greedy.Toolkit.Expressions
             this.TableName = tableName;
         }
 
-        public override string ToSql(SqlGenerator generator)
+        public override string ToSql(SqlGenerator generator, bool withAlias = true)
         {
             var sb = new StringBuilder();
             if (!string.IsNullOrEmpty(TableName))
                 sb.AppendFormat("{0}.", generator.DecorateName(TableName));
             sb.Append(generator.DecorateName(MemberName));
-            if (!string.IsNullOrEmpty(this.Alias))
+            if (!string.IsNullOrEmpty(this.Alias) && withAlias)
                 sb.AppendFormat(" AS {0}", Alias);
             return sb.ToString();
         }
@@ -367,14 +381,14 @@ namespace Greedy.Toolkit.Expressions
             this.Parameters.Add(column);
         }
 
-        public override string ToSql(SqlGenerator generator)
+        public override string ToSql(SqlGenerator generator, bool withAlias = true)
         {
             var sb = new StringBuilder();
             if (this.Parameters != null && this.Parameters.Any())
                 sb.AppendFormat(this.Formatter, this.Parameters.Select(p => p.ToSql(generator)).ToArray());
             else
                 sb.Append(this.Formatter);
-            if (!string.IsNullOrEmpty(this.Alias))
+            if (!string.IsNullOrEmpty(this.Alias) && withAlias)
                 sb.AppendFormat(" AS {0}", Alias);
             return sb.ToString();
         }
@@ -396,9 +410,9 @@ namespace Greedy.Toolkit.Expressions
             this.MemberName = name;
         }
 
-        public override string ToSql(SqlGenerator generator)
+        public override string ToSql(SqlGenerator generator, bool withAlias = true)
         {
-            if (!string.IsNullOrEmpty(this.Alias))
+            if (!string.IsNullOrEmpty(this.Alias) && withAlias)
             {
                 return string.Format("{0} AS {1}", MemberName, Alias);
             }

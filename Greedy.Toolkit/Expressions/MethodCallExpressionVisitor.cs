@@ -27,6 +27,9 @@ namespace Greedy.Toolkit.Expressions
                     case "Count":
                         ParseMethodCount(node);
                         break;
+                    case "Max":
+                        ParseMethodMax(node);
+                        break;
                 }
             }
             else
@@ -74,6 +77,17 @@ namespace Greedy.Toolkit.Expressions
             //column.Add(paramVisitor.Column);
             this.Column = column;
             this.Column.Alias = (node.Arguments[0] as ParameterExpression).Name;
+        }
+
+        private void ParseMethodMax(MethodCallExpression node)
+        {
+            var column = new FunctionColumn();
+            column.Formatter = "Max({0})";
+
+            var paramVisitor = new MemberExpressionVisitor(Context);
+            paramVisitor.Visit(node.Arguments[1]);
+            column.Add(paramVisitor.Column);
+            this.Column = column;
         }
     }
 }
