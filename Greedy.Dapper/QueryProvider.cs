@@ -50,11 +50,10 @@ namespace Greedy.Dapper
             parser.Parse(expression);
 
             Type type = typeof(TResult);
-
             if (expression.NodeType == ExpressionType.Call && type.IsValueType)
             {
-                var method = ((MethodCallExpression)expression).Method;
-                switch (method.Name)
+                var callMethod = ((MethodCallExpression)expression).Method;
+                switch (callMethod.Name)
                 {
                     case "Any":
                     //case "Average":
@@ -80,7 +79,7 @@ namespace Greedy.Dapper
                 //var isAnonymous = false;
                 //if (!isAnonymous)
                 //{
-                method = typeof(SqlMapper).GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static).FirstOrDefault(x => x.Name == "Query" && x.IsGenericMethodDefinition).MakeGenericMethod(type.GetGenericArguments());
+                method = typeof(SqlMapper).GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static).FirstOrDefault(x => x.Name == "Query" && x.IsGenericMethodDefinition).MakeGenericMethod(type.IsGenericType ? type.GetGenericArguments() : new[] { type });
                 //}
                 //else
                 //{
@@ -94,7 +93,29 @@ namespace Greedy.Dapper
                 var param5 = Expression.Parameter(typeof(int?));
                 var param6 = Expression.Parameter(typeof(CommandType?));
                 var source = Expression.Call(method, param0, param1, param2, param3, param4, param5, param6);
-                return Expression.Lambda<Func<IDbConnection, string, object, IDbTransaction, bool, int?, CommandType?, TResult>>(source, param0, param1, param2, param3, param4, param5, param6).Compile()(_connection, parser.ToSql(), parser.Parameters, null, true, null, null);
+
+                if (type.IsGenericType)
+                {
+                    return Expression.Lambda<Func<IDbConnection, string, object, IDbTransaction, bool, int?, CommandType?, TResult>>(source, param0, param1, param2, param3, param4, param5, param6).Compile()(_connection, parser.ToSql(), parser.Parameters, null, true, null, null);
+                }
+                else
+                {
+                    var results = Expression.Lambda<Func<IDbConnection, string, object, IDbTransaction, bool, int?, CommandType?, IEnumerable<TResult>>>(source, param0, param1, param2, param3, param4, param5, param6).Compile()(_connection, parser.ToSql(), parser.Parameters, null, true, null, null);
+                    var callMethod = ((MethodCallExpression)expression).Method;
+                    switch (callMethod.Name)
+                    {
+                        case "First":
+                            return results.First();
+                        case "FirstOrDefault":
+                            return results.FirstOrDefault();
+                        case "Last":
+                            return results.Last();
+                        case "LastOrDefault":
+                            return results.LastOrDefault();
+                        default:
+                            throw new Exception("not supported yet");
+                    }
+                }
             }
         }
 

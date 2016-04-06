@@ -36,6 +36,31 @@ namespace Greedy.Toolkit.Expressions
         {
             switch (node.Method.Name)
             {
+                case "First":
+                case "FirstOrDefault":
+                    this.Visit(node.Arguments[0]);
+                    if (this.context.IsQueryResultChanged)
+                    {
+                        var oldContext = this.context;
+                        this.context = oldContext.CopyTo();
+                        this.context.Fragment.FromPart.Add(new QueryTable(oldContext.WrapToFragment(), this.context.GetTableAlias(oldContext.ExportType)));
+                    }
+                    if (node.Arguments.Count == 2)
+                        ParseWhereExpresson(node.Arguments[1]);
+                    this.context.Fragment.Take = 1;
+                    break;
+                case "Last":
+                case "LastOrDefault":
+                    this.Visit(node.Arguments[0]);
+                    if (this.context.IsQueryResultChanged)
+                    {
+                        var oldContext = this.context;
+                        this.context = oldContext.CopyTo();
+                        this.context.Fragment.FromPart.Add(new QueryTable(oldContext.WrapToFragment(), this.context.GetTableAlias(oldContext.ExportType)));
+                    }
+                    if (node.Arguments.Count == 2)
+                        ParseWhereExpresson(node.Arguments[1]);
+                    break;
                 case "Where":
                     this.Visit(node.Arguments[0]);
                     if (this.context.IsQueryResultChanged)

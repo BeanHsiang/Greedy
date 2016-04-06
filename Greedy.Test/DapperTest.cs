@@ -338,6 +338,14 @@ namespace Greedy.Test
 
             Assert.AreNotEqual(0, arr.ToArray().Count(), "LeftInner多表Linq查询失败");
         }
+
+        [TestMethod]
+        public void TestFirstLinq()
+        {
+            var person = con.Predicate<Person>().Where(p => p.Age < 20).FirstOrDefault();
+
+            Assert.AreNotEqual(0, person.Id, "First Linq查询失败");
+        }
     }
 }
 

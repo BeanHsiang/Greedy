@@ -68,6 +68,9 @@
       <Name>Greedy.Toolkit</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="qconf.json" />
+  </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>
