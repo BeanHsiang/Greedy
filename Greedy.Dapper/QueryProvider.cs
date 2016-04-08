@@ -18,6 +18,7 @@ namespace Greedy.Dapper
         {
             _connection = connection;
         }
+
         public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
             _expression = expression;

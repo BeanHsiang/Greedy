@@ -19,12 +19,14 @@ namespace Greedy.Dapper
             _expression = Expression.Constant(this);
             _elementType = typeof(T);
         }
+
         public DataQuery(QueryProvider provider, Expression expression)
         {
             this.provider = provider;
             _expression = expression;
             _elementType = typeof(T);
         }
+
         public IEnumerator<T> GetEnumerator()
         {
             return provider.Execute<IEnumerable<T>>(Expression).GetEnumerator();
@@ -39,6 +41,7 @@ namespace Greedy.Dapper
         {
             get { return _elementType; }
         }
+
         public string CommandText
         {
             get
