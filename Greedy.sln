@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Greedy.Toolkit", "Greedy.To
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Greedy.Test", "Greedy.Test\Greedy.Test.csproj", "{49D7DD72-C80E-4D3C-9045-4D7E98C2F325}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Greedy.QueryEngine", "Greedy.QueryEngine\Greedy.QueryEngine.csproj", "{B20270F1-01CE-4C19-9B36-9AB6BF3AFB30}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{49D7DD72-C80E-4D3C-9045-4D7E98C2F325}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{49D7DD72-C80E-4D3C-9045-4D7E98C2F325}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{49D7DD72-C80E-4D3C-9045-4D7E98C2F325}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B20270F1-01CE-4C19-9B36-9AB6BF3AFB30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B20270F1-01CE-4C19-9B36-9AB6BF3AFB30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B20270F1-01CE-4C19-9B36-9AB6BF3AFB30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B20270F1-01CE-4C19-9B36-9AB6BF3AFB30}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

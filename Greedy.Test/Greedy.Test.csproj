@@ -57,11 +57,16 @@
   <ItemGroup>
     <Compile Include="DapperTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QueryEngineTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Greedy.Dapper\Greedy.Dapper.csproj">
       <Project>{b29c8084-439e-4668-a17e-a56e2e3b3e65}</Project>
       <Name>Greedy.Dapper</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Greedy.QueryEngine\Greedy.QueryEngine.csproj">
+      <Project>{b20270f1-01ce-4c19-9b36-9ab6bf3afb30}</Project>
+      <Name>Greedy.QueryEngine</Name>
     </ProjectReference>
     <ProjectReference Include="..\Greedy.Toolkit\Greedy.Toolkit.csproj">
       <Project>{a503f132-88f9-4200-aebd-a64986d886f5}</Project>
