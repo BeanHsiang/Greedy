@@ -1,0 +1,8 @@
+﻿{
+    sqlStatements: [
+        { name: "myperson", sql: "select * from person where age>@age " }
+    ],
+    rules: [
+        { name: "myperson", sqlStatementName: "myperson", filter: "", expire: "", dependRuleName: "" }
+    ]
+}
