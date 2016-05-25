@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace Greedy.Test
 {
@@ -37,12 +38,12 @@ namespace Greedy.Test
     {
         static IDbConnection con;
         Random rand = new Random();
+        const string conStr = "server=LocalHost;User Id=root;Pwd=greedyint;database=test";
 
 
         [ClassInitialize]
         public static void Initialize(TestContext context)
         {
-            var conStr = "server=LocalHost;User Id=root;Pwd=greedyint;database=test";
             con = new MySqlConnection(conStr);
         }
 
@@ -345,6 +346,24 @@ namespace Greedy.Test
             var person = con.Predicate<Person>().Where(p => p.Age < 20).FirstOrDefault();
 
             Assert.AreNotEqual(0, person.Id, "First Linq查询失败");
+        }
+
+        [TestMethod]
+        public void TestInsertStrongClassInstanceWithTask()
+        {
+            var count = 10;
+            var tasks = new Task[count];
+            Parallel.For(0, count, i =>
+            {
+                var person = new Person() { Name = "TestInsertStrongClassInstanceName", Age = rand.Next(1, 100), Address = "TestInsertStrongClassInstanceAddress" };
+                tasks[i] = Task.Run(() =>
+                {
+                    var threadCon = new MySqlConnection(conStr);
+                    threadCon.Insert<Person>(person);
+                });
+            });
+
+            Task.WaitAll(tasks);
         }
     }
 }

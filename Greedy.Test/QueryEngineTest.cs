@@ -57,7 +57,7 @@ namespace Greedy.Test
         {
             var core = new CoreEngine(prov, null);
             var result = core.Query<Person>("myperson", new { Age = 30 });
-            Assert.AreNotEqual(1, result.Count(), "查询引擎失败");
+            Assert.AreNotEqual(0, result.Count(), "查询引擎失败");
         }
     }
 }

@@ -1,8 +1,9 @@
 ﻿{
     sqlStatements: [
-        { name: "myperson", sql: "select * from person where age>@age " }
+        { name: "myperson", sql: "select * from person
+              where age>@age" }
     ],
     rules: [
-        { name: "myperson", sqlStatementName: "myperson", filter: "", expire: "", dependRuleName: "" }
+        { name: "myperson", sqlStatement: "myperson", expire: "", countSqlStatement: "" }
     ]
 }

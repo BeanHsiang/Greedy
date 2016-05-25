@@ -21,9 +21,14 @@ namespace Greedy.QueryEngine
     public class Rule
     {
         public string Name { get; set; }
-        public string SqlStatementName { get; set; }
-        public string Filter { get; set; }
+        public string SqlStatement { get; set; }
+        public string CountSqlStatement { get; set; }
         public int? Expire { get; set; }
-        public string DependRuleName { get; set; }
+    }
+
+    public class PagedResult<T>
+    {
+        public IEnumerable<T> Data { get; set; }
+        public int Total { get; set; }
     }
 }

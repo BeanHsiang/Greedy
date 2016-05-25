@@ -13,9 +13,9 @@ namespace Greedy.Toolkit.Sql
     class TypeHandler
     {
         private static MemberMapperComparer MemberMapperComparer = new MemberMapperComparer();
-        private static IList<Tuple<int, int, string>> insertSqlCache = new List<Tuple<int, int, string>>();
-        private static IList<Tuple<int, int, string>> insertSqlWithIdentityCache = new List<Tuple<int, int, string>>();
-        private static IList<Tuple<int, int, string>> updateSqlCache = new List<Tuple<int, int, string>>();
+        private static ISet<Tuple<int, int, string>> insertSqlCache = new HashSet<Tuple<int, int, string>>();
+        private static ISet<Tuple<int, int, string>> insertSqlWithIdentityCache = new HashSet<Tuple<int, int, string>>();
+        private static ISet<Tuple<int, int, string>> updateSqlCache = new HashSet<Tuple<int, int, string>>();
         //private static QueryExpressionParser parser;
 
         public SqlGenerator SqlGenerator { get; private set; }

@@ -33,43 +33,101 @@ namespace Greedy.QueryEngine
 
         public IEnumerable<T> Query<T>(string ruleName, object parameter, object state = null, Action<IEnumerable<T>> action = null)
         {
-            var conneciton = this.DbConnectionProvider.GetConnection(state);
-            var rule = profile.Rules.First(r => r.Name == ruleName);
             IEnumerable<T> result;
-            string key = "";
-            if (CacheProvider != null && rule.Expire.HasValue)
-            {
-                key = HashParameters(ruleName, parameter, state);
-                var obj = CacheProvider.Get<IEnumerable<T>>(key);
-                if (obj != null)
-                    return obj;
-            }
+            var rule = profile.Rules.First(r => r.Name == ruleName);
+            var sqlStatement = profile.SqlStatements.First(s => s.Name == rule.SqlStatement);
 
-            if (!string.IsNullOrEmpty(rule.DependRuleName))
+            if (!IsNeedCache(rule.Expire))
             {
-                result = Query<T>(rule.DependRuleName, parameter, state);
+                //从普通查询中获取 
+                result = InternalQuery<T>(sqlStatement, parameter, state);
             }
             else
             {
-                var sqlStatementName = rule.SqlStatementName;
-                var sqlStatement = profile.SqlStatements.First(s => s.Name == sqlStatementName);
-                result = conneciton.Query<T>(sqlStatement.Sql, parameter);
+                //尝试从缓存中获取
+                var key = HashParameters(ruleName, parameter, state);
+                result = CacheProvider.Get<IEnumerable<T>>(key);
+                if (result == null)
+                {
+                    result = InternalQuery<T>(sqlStatement, parameter, state);
+                    SetResultToCache(key, result, rule.Expire);
+                }
             }
 
             if (action != null)
             {
+                //如果有事后处理函数，则执行
                 action(result);
             }
 
-            if (CacheProvider != null && rule.Expire.HasValue)
+            return result;
+        }
+
+        public PagedResult<T> PagedQuery<T>(string ruleName, object parameter, object state = null, Action<IEnumerable<T>> action = null)
+        {
+            PagedResult<T> result;
+            var rule = profile.Rules.First(r => r.Name == ruleName);
+            var sqlStatement = profile.SqlStatements.First(s => s.Name == rule.SqlStatement);
+            var countSqlStatement = profile.SqlStatements.First(s => s.Name == rule.CountSqlStatement);
+
+            if (!IsNeedCache(rule.Expire))
             {
-                if (rule.Expire.Value > 0)
-                    CacheProvider.Set(key, result, rule.Expire.Value);
-                else
-                    CacheProvider.Set(key, result);
+                //从普通查询中获取 
+                result = new PagedResult<T>()
+                {
+                    Data = InternalQuery<T>(sqlStatement, parameter, state),
+                    Total = InternalCountQuery(countSqlStatement, parameter, state)
+                };
+            }
+            else
+            {
+                //尝试从缓存中获取
+                var key = HashParameters(ruleName, parameter, state);
+                result = CacheProvider.Get<PagedResult<T>>(key);
+                if (result == null)
+                {
+                    result = new PagedResult<T>()
+                    {
+                        Data = InternalQuery<T>(sqlStatement, parameter, state),
+                        Total = InternalCountQuery(countSqlStatement, parameter, state)
+                    };
+                    SetResultToCache(key, result, rule.Expire);
+                }
+            }
+
+            if (action != null)
+            {
+                //如果有事后处理函数，则执行
+                action(result.Data);
             }
 
             return result;
+        }
+
+        private IEnumerable<T> InternalQuery<T>(SqlStatement statement, object parameter, object state)
+        {
+            var conneciton = this.DbConnectionProvider.GetConnection(state);
+            return conneciton.Query<T>(statement.Sql, parameter);
+        }
+
+        private int InternalCountQuery(SqlStatement statement, object parameter, object state)
+        {
+            var conneciton = this.DbConnectionProvider.GetConnection(state);
+            return conneciton.ExecuteScalar<int>(statement.Sql, parameter);
+        }
+
+        private bool IsNeedCache(int? expire)
+        {
+            return CacheProvider != null && expire.HasValue;
+        }
+
+        private void SetResultToCache(string key, object obj, int? expire)
+        {
+            //如果有缓存要求，将结果进行缓存
+            if (expire.Value > 0)
+                CacheProvider.Set(key, obj, expire.Value);
+            else
+                CacheProvider.Set(key, obj);
         }
 
         private string HashParameters(string ruleName, object parameter, object state = null)

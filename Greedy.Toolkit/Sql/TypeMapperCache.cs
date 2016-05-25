@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,14 +14,17 @@ namespace Greedy.Toolkit.Sql
         internal static ITypeMapper GetTypeMapper(object obj)
         {
             var type = obj is Type ? (obj as Type) : obj.GetType();
-            if (typeMapperCache.ContainsKey(type.TypeHandle.Value))
+            lock (typeMapperCache)
             {
-                return typeMapperCache[type.TypeHandle.Value];
+                if (typeMapperCache.ContainsKey(type.TypeHandle.Value))
+                {
+                    return typeMapperCache[type.TypeHandle.Value];
+                }
+                var mapper = new TypeMapper(obj);
+                if (mapper.Name != TypeMapper.Dictionary_Name)
+                    typeMapperCache.Add(type.TypeHandle.Value, mapper);
+                return mapper;
             }
-            var mapper = new TypeMapper(obj);
-            if (mapper.Name != TypeMapper.Dictionary_Name)
-                typeMapperCache.Add(type.TypeHandle.Value, mapper);
-            return mapper;
         }
     }
 }
