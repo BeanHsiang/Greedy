@@ -41,7 +41,7 @@
   <ItemGroup>
     <Compile Include="BackgroundService\BackgroundServiceConfig.cs" />
     <Compile Include="BackgroundService\IBackgroundTask.cs" />
-    <Compile Include="Class1.cs" />
+    <Compile Include="CryptoExtension.cs" />
     <Compile Include="Expressions\BinaryExpressionVisitor.cs" />
     <Compile Include="Expressions\ExpressionExtension.cs" />
     <Compile Include="Expressions\ExpressionVisitorBase.cs" />
@@ -59,6 +59,7 @@
     <Compile Include="Sql\KeyAttribute.cs" />
     <Compile Include="Sql\MemberMapper.cs" />
     <Compile Include="Sql\ISqlDialect.cs" />
+    <Compile Include="Sql\NoMapAttribute.cs" />
     <Compile Include="Sql\TableAttribute.cs" />
     <Compile Include="Sql\TypeHandler.cs" />
     <Compile Include="Sql\MySqlDialect.cs" />

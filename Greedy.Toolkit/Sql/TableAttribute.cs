@@ -2,7 +2,7 @@
 
 namespace Greedy.Toolkit.Sql
 {
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
     public class TableAttribute : Attribute
     {
         public string Name { get; set; }

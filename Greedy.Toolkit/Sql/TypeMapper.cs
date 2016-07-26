@@ -87,7 +87,7 @@ namespace Greedy.Toolkit.Sql
 
         private void InitMemberMappers(Type type)
         {
-            this.AllMembers = type.GetProperties().Select(p => new MemberMapper(p)).ToList();
+            this.AllMembers = type.GetProperties().Where(p => !p.GetCustomAttributes<NoMapAttribute>().Any()).Select(p => new MemberMapper(p)).ToList();
         }
 
         private int GetIdentity()

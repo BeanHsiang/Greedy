@@ -91,6 +91,9 @@
     <Compile Include="..\Greedy.Toolkit\Sql\MySqlDialect.cs">
       <Link>Sql\MySqlDialect.cs</Link>
     </Compile>
+    <Compile Include="..\Greedy.Toolkit\Sql\NoMapAttribute.cs">
+      <Link>Sql\NoMapAttribute.cs</Link>
+    </Compile>
     <Compile Include="..\Greedy.Toolkit\Sql\SqlGenerator.cs">
       <Link>Sql\SqlGenerator.cs</Link>
     </Compile>
@@ -113,6 +116,9 @@
     <Compile Include="SqlMapper.cs" />
     <Compile Include="SqlMapperExtension.cs" />
     <Compile Include="Sql\ColumnSet.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Greedy.Dapper.nuspec" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
