@@ -26,6 +26,10 @@ namespace Greedy.Dapper
             return typeHandler;
         }
 
+        /// <summary>
+        /// Insert one or more objects as per T, that are the same type 
+        /// </summary>
+        /// <returns>Number of rows affected</returns>
         public static int Insert<T>(this IDbConnection cnn, object param, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             var type = param.GetType();
@@ -35,7 +39,7 @@ namespace Greedy.Dapper
                 var count = 0;
                 foreach (var item in arr)
                 {
-                    count += cnn.Insert<T>(item);
+                    count += cnn.Insert<T>(item, transaction, commandTimeout);
                 }
                 return count;
             }
@@ -43,16 +47,28 @@ namespace Greedy.Dapper
                 return cnn.Execute(GetTypeHandler(cnn).GetInsertSql<T>(param), param, transaction, commandTimeout);
         }
 
+        /// <summary>
+        /// Insert an object as per T
+        /// </summary>
+        /// <returns>THe identity value of last inserted row</returns>
         public static long InsertWithIdentity<T>(this IDbConnection cnn, object param, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return cnn.ExecuteScalar<long>(GetTypeHandler(cnn).GetInsertSqlWithIdentity<T>(param), param, transaction, commandTimeout);
         }
 
+        /// <summary>
+        /// Update one or more objects as per T, that are the same type 
+        /// </summary>
+        /// <returns>Number of rows affected</returns>
         public static int Update<T>(this IDbConnection cnn, object param, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return cnn.Execute(GetTypeHandler(cnn).GetUpdateSql<T>(param), param, transaction, commandTimeout);
         }
 
+        /// <summary>
+        /// Update rows according to some special condition expressions
+        /// </summary>
+        /// <returns>Number of rows affected</returns>
         public static int Update<T>(this IDbConnection cnn, Expression<Func<T, bool>> expression, IDictionary<Expression<Func<T, object>>, object> param, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             IDictionary<string, dynamic> parameters;
@@ -60,6 +76,10 @@ namespace Greedy.Dapper
             return cnn.Execute(sql, parameters, transaction, commandTimeout);
         }
 
+        /// <summary>
+        /// Update rows according to a special condition expression
+        /// </summary>
+        /// <returns>Number of rows affected</returns>
         public static int Update<T>(this IDbConnection cnn, Expression<Func<T, bool>> expression, Expression<Func<T, object>> param, object value, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             IDictionary<string, dynamic> parameters;
@@ -67,11 +87,19 @@ namespace Greedy.Dapper
             return cnn.Execute(sql, parameters, transaction, commandTimeout);
         }
 
+        /// <summary>
+        /// Get a update-prepared set
+        /// </summary>
+        /// <returns>ColumnSet type</returns>
         public static ColumnSet<T> Set<T>(this IDbConnection cnn)
         {
             return new ColumnSet<T>(cnn);
         }
 
+        /// <summary>
+        /// Delete rows according to a special condition expression
+        /// </summary>
+        /// <returns>Number of rows affected</returns>
         public static int Delete<T>(this IDbConnection cnn, Expression<Func<T, bool>> expression, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             IDictionary<string, dynamic> parameters;
@@ -79,6 +107,10 @@ namespace Greedy.Dapper
             return cnn.Execute(sql, parameters, transaction, commandTimeout);
         }
 
+        /// <summary>
+        /// Execute a query, returning the data typed as per T
+        /// </summary>
+        /// <returns>A sequence of data of the supplied type</returns>
         public static IEnumerable<T> Get<T>(this IDbConnection cnn, Expression<Func<T, bool>> expression, IDbTransaction transaction = null, bool buffered = true, int? commandTimeout = null)
         {
             IDictionary<string, dynamic> parameters;
@@ -88,6 +120,10 @@ namespace Greedy.Dapper
             return cnn.Query<T>(sql, parameters, transaction, buffered, commandTimeout);
         }
 
+        /// <summary>
+        /// Get a query expressions
+        /// </summary>
+        /// <returns>A sequence of data of the type of IQueryable</returns>
         public static IQueryable<T> Predicate<T>(this IDbConnection dbConnection)
         {
             return new DataQuery<T>(new QueryProvider(dbConnection));
