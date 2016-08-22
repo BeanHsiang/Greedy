@@ -2681,6 +2681,33 @@ this IDbConnection cnn, string sql, Func<TFirst, TSecond, TThird, TFourth, TRetu
                  };
         }
 #endif
+#if !DNXCORE50
+        [Browsable(false)]
+#endif
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("This method is for internal usage only", false)]
+        public static bool ReadBool(object value)
+        {
+            if (value.GetType() != typeof(bool))
+            {
+                return Convert.ToBoolean(value);
+            }
+            else
+                return (bool)value;
+        }
+
+#if !DNXCORE50
+        [Browsable(false)]
+#endif
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("This method is for internal usage only", false)]
+        public static bool? ReadNullableBool(object value)
+        {
+            if (value == null || value is DBNull) return null;
+
+            return ReadBool(value);
+        }
+
         /// <summary>
         /// Internal use only
         /// </summary>
@@ -3799,6 +3826,11 @@ Type type, IDataReader reader, int startBound = 0, int length = -1, bool returnN
                     {
                         il.EmitCall(OpCodes.Call, typeof(SqlMapper).GetMethod(
                             memberType == typeof(char) ? "ReadChar" : "ReadNullableChar", BindingFlags.Static | BindingFlags.Public), null); // stack is now [target][target][typed-value]
+                    }
+                    else if (memberType == typeof(bool) || memberType == typeof(bool?))
+                    {
+                        il.EmitCall(OpCodes.Call, typeof(SqlMapper).GetMethod(
+                            memberType == typeof(bool) ? "ReadBool" : "ReadNullableBool", BindingFlags.Static | BindingFlags.Public), null); // stack is now [target][target][typed-value]
                     }
                     else
                     {

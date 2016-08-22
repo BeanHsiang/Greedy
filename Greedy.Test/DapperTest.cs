@@ -17,6 +17,7 @@ namespace Greedy.Test
         public string Name { get; set; }
         public int Age { get; set; }
         public string Address { get; set; }
+        public bool Enabled { get; set; }
     }
 
     class Article
@@ -40,7 +41,7 @@ namespace Greedy.Test
         static IDbConnection con;
         Random rand = new Random();
         const string conStr = "server=LocalHost;User Id=root;Pwd=greedyint;database=test";
-
+        //const string conStr = "server=127.0.0.1;port=15578;User Id=root;Pwd=123123;database=test";
 
         [ClassInitialize]
         public static void Initialize(TestContext context)
@@ -57,7 +58,7 @@ namespace Greedy.Test
         [TestMethod]
         public void TestInsertStrongClassInstance()
         {
-            var person = new Person() { Name = "TestInsertStrongClassInstanceName", Age = rand.Next(1, 100), Address = "TestInsertStrongClassInstanceAddress" };
+            var person = new Person() { Name = "TestInsertStrongClassInstanceName", Age = rand.Next(1, 100), Address = "TestInsertStrongClassInstanceAddress", Enabled = true };
 
             var count = con.Insert<Person>(person);
             Assert.AreEqual(1, count, "插入强类型实例失败");
@@ -66,7 +67,7 @@ namespace Greedy.Test
         [TestMethod]
         public void TestInsertAnonymousClassInstance()
         {
-            var person = new { Name = "TestInsertAnonymousClassInstanceName", Age = rand.Next(1, 100), Address = "TestInsertAnonymousClassInstanceAddress" };
+            var person = new { Name = "TestInsertAnonymousClassInstanceName", Age = rand.Next(1, 100), Address = "TestInsertAnonymousClassInstanceAddress", Enabled = true };
 
             var count = con.Insert<Person>(person);
             Assert.AreEqual(1, count, "插入匿名类型实例失败");
@@ -75,9 +76,9 @@ namespace Greedy.Test
         [TestMethod]
         public void TestInsertBatchStrongClassInstance()
         {
-            var person = new Person() { Name = "TestInsertBatchStrongClassInstanceName", Age = rand.Next(1, 100), Address = "TestInsertBatchStrongClassInstanceAddress" };
+            var person = new Person() { Name = "TestInsertBatchStrongClassInstanceName", Age = rand.Next(1, 100), Address = "TestInsertBatchStrongClassInstanceAddress", Enabled = true };
 
-            var person2 = new Person() { Name = "TestInsertBatchStrongClassInstanceName", Age = rand.Next(1, 100), Address = "TestInsertBatchStrongClassInstanceAddress" };
+            var person2 = new Person() { Name = "TestInsertBatchStrongClassInstanceName", Age = rand.Next(1, 100), Address = "TestInsertBatchStrongClassInstanceAddress", Enabled = true };
 
             var count = con.Insert<Person>(new Person[] { person, person2 });
             Assert.AreEqual(2, count, "批量插入强类型实例失败");
@@ -87,9 +88,9 @@ namespace Greedy.Test
         public void TestInsertBatchAnonymousClassInstance()
         {
             /* 匿名类型的实例，字段名称和个数必须一致 */
-            var person = new { Name = "TestInsertBatchAnonymousClassInstanceName", Age = rand.Next(1, 100), Address = "TestInsertBatchAnonymousClassInstanceAddress" };
+            var person = new { Name = "TestInsertBatchAnonymousClassInstanceName", Age = rand.Next(1, 100), Address = "TestInsertBatchAnonymousClassInstanceAddress", Enabled = true };
 
-            var person2 = new { Name = "TestInsertBatchAnonymousClassInstanceName", Age = rand.Next(1, 100), Address = "TestInsertBatchAnonymousClassInstanceAddress" };
+            var person2 = new { Name = "TestInsertBatchAnonymousClassInstanceName", Age = rand.Next(1, 100), Address = "TestInsertBatchAnonymousClassInstanceAddress", Enabled = true };
 
             var count = con.Insert<Person>(new[] { person, person2 });
             Assert.AreEqual(2, count, "批量插入匿名类型实例失败");
@@ -103,7 +104,7 @@ namespace Greedy.Test
             dic.Add("Name", "TestInsertDictionaryClassInstanceName");
             dic.Add("Age", rand.Next(1, 100));
             dic.Add("Address", "TestInsertDictionaryClassInstanceAddress");
-
+            dic.Add("Enabled", true);
             var count = con.Insert<Person>(dic);
             Assert.AreEqual(1, count, "插入字典形式类型实例失败");
         }
@@ -125,7 +126,7 @@ namespace Greedy.Test
         public void TestUpdateAnonymousClassInstance()
         {
             var person = con.Query<Person>("select * from Person order by id desc limit 1;").First();
-            var updatePerson = new { Id = person.Id, Age = person.Age + 1, Address = "TestUpdateAnonymousClassInstanceAddress" };
+            var updatePerson = new { Id = person.Id, Age = person.Age + 1, Address = "TestUpdateAnonymousClassInstanceAddress", Enabled = true };
 
             var count = con.Update<Person>(updatePerson);
             Assert.AreEqual(1, count, "更新匿名类型实例失败");
@@ -152,7 +153,7 @@ namespace Greedy.Test
         {
             var lastPerson = con.Query<Person>("select * from Person order by id desc limit 1;").First();
 
-            var person = new Person() { Name = "TestInsertWithIdentityStrongClassInstanceName", Age = rand.Next(1, 100), Address = "TestInsertWithIdentityStrongClassInstanceAddress" };
+            var person = new Person() { Name = "TestInsertWithIdentityStrongClassInstanceName", Age = rand.Next(1, 100), Address = "TestInsertWithIdentityStrongClassInstanceAddress", Enabled = true };
 
             var id = con.InsertWithIdentity<Person>(person);
             Assert.AreEqual(true, lastPerson.Id < id, "插入强类型实例获取Id失败");
@@ -163,7 +164,7 @@ namespace Greedy.Test
         {
             var lastPerson = con.Query<Person>("select * from Person order by id desc limit 1;").First();
 
-            var person = new { Name = "TestInsertWithIdentityAnonymousClassInstanceName", Age = rand.Next(1, 100), Address = "TestInsertWithIdentityAnonymousClassInstanceAddress" };
+            var person = new { Name = "TestInsertWithIdentityAnonymousClassInstanceName", Age = rand.Next(1, 100), Address = "TestInsertWithIdentityAnonymousClassInstanceAddress", Enabled = true };
 
             var id = con.InsertWithIdentity<Person>(person);
             Assert.AreEqual(true, lastPerson.Id < id, "插入匿名类型实例获取Id失败");
@@ -179,7 +180,7 @@ namespace Greedy.Test
             dic.Add("Name", "TestInsertWithIdentityDictionaryClassInstanceName");
             dic.Add("Age", rand.Next(1, 100));
             dic.Add("Address", "TestInsertWithIdentityDictionaryClassInstanceAddress");
-
+            dic.Add("Enabled", true);
             var id = con.InsertWithIdentity<Person>(dic);
             Assert.AreEqual(true, lastPerson.Id < id, "插入字典形式类型实例获取Id失败");
         }
@@ -344,7 +345,7 @@ namespace Greedy.Test
         [TestMethod]
         public void TestFirstLinq()
         {
-            var person = con.Predicate<Person>().Where(p => p.Age < 20).FirstOrDefault();
+            var person = con.Predicate<Person>().Where(p => p.Age < 20 && p.Enabled).FirstOrDefault();
 
             Assert.AreNotEqual(0, person.Id, "First Linq查询失败");
         }

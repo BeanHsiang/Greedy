@@ -58,5 +58,21 @@ namespace Greedy.Toolkit.Expressions
             this.Condition = new SingleCondition { Right = visitor.Column };
             return node;
         }
+
+        protected override Expression VisitMember(MemberExpression node)
+        {
+            var visitor = new MemberExpressionVisitor(this.Context);
+            visitor.Visit(node);
+            if (visitor.Column.Type == typeof(bool))
+            {
+                var column = new ParameterColumn(this.Context.AddParameter(true)) { Type = typeof(bool) };
+                this.Condition = new SingleCondition { Left = visitor.Column, Relation = "=", Right = column };
+            }
+            else
+            {
+                this.Condition = new SingleCondition { Right = visitor.Column };
+            }
+            return node;
+        }
     }
 }
