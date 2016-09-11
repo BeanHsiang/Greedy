@@ -58,11 +58,16 @@ namespace Greedy.Toolkit.Sql
 
         public string GetFetchSql<T>(Expression<Func<T, bool>> expression, out IDictionary<string, dynamic> param)
         {
-            var context = new ExpressionVisitorContext(SqlGenerator);
-            var visitor = new WhereExpressionVisitor(context);
-            visitor.Visit(expression);
-            var whereSql = visitor.Condition.ToSql(SqlGenerator);
-            param = context.Parameters;
+            var whereSql = string.Empty;
+            param = null;
+            if (expression != null)
+            {
+                var context = new ExpressionVisitorContext(SqlGenerator);
+                var visitor = new WhereExpressionVisitor(context);
+                visitor.Visit(expression);
+                whereSql = visitor.Condition.ToSql(SqlGenerator);
+                param = context.Parameters;
+            }
             var targetMapper = TypeMapperCache.GetTypeMapper(typeof(T));
             return SqlGenerator.GetFetchSql(targetMapper, null, whereSql);
         }

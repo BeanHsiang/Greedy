@@ -11,6 +11,11 @@ using System.Threading.Tasks;
 
 namespace Greedy.Test
 {
+    enum Gender
+    {
+        Male = 0,
+        Female
+    }
     class Person
     {
         public long Id { get; set; }
@@ -18,6 +23,7 @@ namespace Greedy.Test
         public int Age { get; set; }
         public string Address { get; set; }
         public bool Enabled { get; set; }
+        public Gender Gender { get; set; }
     }
 
     class Article
@@ -53,6 +59,13 @@ namespace Greedy.Test
         public static void Clean()
         {
             con.Dispose();
+        }
+
+        [TestMethod]
+        public void TestEnumPropertyMap()
+        {
+            var person = con.Get<Person>(null).First();
+            Assert.AreEqual(Gender.Male, person.Gender);
         }
 
         [TestMethod]
@@ -366,6 +379,19 @@ namespace Greedy.Test
             });
 
             Task.WaitAll(tasks);
+        }
+
+        [TestMethod]
+        public void TestQueryDictionaryParameter()
+        {
+            var dic = new Dictionary<string, object>();
+
+            dic.Add("Name", "TestInsertStrongClassInstanceName");
+            dic.Add("Age", 50);
+            //dic.Add("Address", "TestInsertDictionaryClassInstanceAddress");
+            //dic.Add("Enabled", true);
+            var persons = con.Query<Person>("select count(*) name from person where name=@Name and age=@Age", dic);
+            Assert.AreEqual(1, persons.Count(), "查询参数用字典形式失败");
         }
     }
 }

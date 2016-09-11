@@ -53,6 +53,9 @@
     <Compile Include="Expressions\QueryFragment.cs" />
     <Compile Include="Expressions\SelectExpressionVisitor.cs" />
     <Compile Include="Expressions\WhereExpressionVisitor.cs" />
+    <Compile Include="Paging\PagedCondition.cs" />
+    <Compile Include="Paging\PagedParameter.cs" />
+    <Compile Include="Paging\PagedResult.cs" />
     <Compile Include="Pool.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sql\ColumnAttribute.cs" />
