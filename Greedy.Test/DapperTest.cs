@@ -393,6 +393,13 @@ namespace Greedy.Test
             var persons = con.Query<Person>("select count(*) name from person where name=@Name and age=@Age", dic);
             Assert.AreEqual(1, persons.Count(), "查询参数用字典形式失败");
         }
+
+        [TestMethod]
+        public void TestLike()
+        {
+            var person = con.Query<Person>("select * from Person where name like @Name", new { Name="%ta%"}).FirstOrDefault();
+            Assert.AreNotEqual(0, person.Id, "Like查询失败");
+        }
     }
 }
 

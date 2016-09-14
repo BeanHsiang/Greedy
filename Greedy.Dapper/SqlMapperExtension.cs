@@ -15,7 +15,8 @@ namespace Greedy.Dapper
     static partial class SqlMapper
     {
         private static TypeHandler typeHandler;
-
+        private static IDbTransaction transaction;
+        private static int deep = 0;
 
         private static TypeHandler GetTypeHandler(IDbConnection cnn)
         {
@@ -127,6 +128,75 @@ namespace Greedy.Dapper
         public static IQueryable<T> Predicate<T>(this IDbConnection dbConnection)
         {
             return new DataQuery<T>(new QueryProvider(dbConnection));
+        }
+
+        /// <summary>
+        /// Create a transaction for nested
+        /// </summary>
+        /// <param name="dbConnection"></param>
+        //public static void BeginGlobalTransaction(this IDbConnection dbConnection)
+        //{
+        //    BeginNestedTransaction(dbConnection);
+        //}
+
+        /// <summary>
+        /// Create a transaction for nested
+        /// </summary>
+        /// <param name="dbConnection"></param>
+        public static void BeginNestedTransaction(this IDbConnection dbConnection)
+        {
+            transaction = dbConnection.BeginTransaction();
+            deep++;
+        }
+
+        /// <summary>
+        /// Commit a transaction for nested
+        /// </summary>
+        /// <param name="dbConnection"></param>
+        public static void CommitNested(this IDbConnection dbConnection)
+        {
+            deep--;
+            if (deep == 0)
+            {
+                transaction.Commit();
+            }
+        }
+
+        /// <summary>
+        /// Rollback a transaction for nested
+        /// </summary>
+        /// <param name="dbConnection"></param>
+        public static void RollbackNested(this IDbConnection dbConnection)
+        {
+            deep--;
+            if (deep == 0)
+            {
+                transaction.Rollback();
+            }
+        }
+
+        /// <summary>
+        /// Open the connection
+        /// </summary>
+        /// <param name="dbConnection"></param>
+        public static void OpenConnection(this IDbConnection dbConnection)
+        {
+            if (dbConnection.State != ConnectionState.Open)
+            {
+                dbConnection.Open();
+            }
+        }
+
+        /// <summary>
+        /// Close the connection
+        /// </summary>
+        /// <param name="dbConnection"></param>
+        public static void CloseConnection(this IDbConnection dbConnection)
+        {
+            if (dbConnection.State != ConnectionState.Closed)
+            {
+                dbConnection.Close();
+            }
         }
     }
 }

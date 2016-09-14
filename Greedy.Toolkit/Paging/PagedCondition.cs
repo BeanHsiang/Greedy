@@ -10,27 +10,39 @@ namespace Greedy.Toolkit.Paging
     {
         public IDictionary<string, dynamic> Filter { get; set; }
         public IDictionary<string, QueryOrder> Order { get; set; }
-        public PagedParameter Pageparameter { get; set; }
+        public PagedParameter PagedParameter { get; set; }
 
         public PagedCondition()
         {
-            this.Pageparameter = new PagedParameter();
+            this.PagedParameter = new PagedParameter();
         }
 
         public string ToLimitSql(Dictionary<string, dynamic> input)
         {
-            input.Add("mysql_offset", Pageparameter.PageIndex - 1);
-            input.Add("mysql_limit", Pageparameter.PageSize);
+            if (this.PagedParameter == null)
+            {
+                return string.Empty;
+            }
+            input.Add("mysql_offset", PagedParameter.PageIndex - 1);
+            input.Add("mysql_limit", PagedParameter.PageSize);
             return string.Format("limit @mysql_offset,@mysql_limit");
         }
 
         public string ToWhereSql(Func<IDictionary<string, dynamic>, string> func)
         {
+            if (func == null || this.Filter == null)
+            {
+                return string.Empty;
+            }
             return func(Filter);
         }
 
         public string ToOrderSql(Func<IDictionary<string, QueryOrder>, string> func)
         {
+            if (func == null || this.Order == null)
+            {
+                return string.Empty;
+            }
             return func(Order);
         }
     }
