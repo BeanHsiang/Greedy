@@ -31,27 +31,36 @@ namespace Greedy.Toolkit.Expressions
         {
             if (node.Expression.IsParameter())
             {
-                var type = node.Member.DeclaringType;
+                var parameterExpresion = node.Expression.GetParameterExpresion();
+                var memberType = node.Member.DeclaringType;
+                if (parameterExpresion != null && parameterExpresion.Type.IsSubclassOf(memberType))
+                {
+                    // memberType = parameterExpresion.Type;
+                    TypeMapperCache.AddTransferTypeMapper(memberType, parameterExpresion.Type);
+                }
+
                 if (node.Member.MemberType == MemberTypes.Property)
                 {
                     var property = node.Member as PropertyInfo;
                     if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                     {
-                        type = property.PropertyType.GenericTypeArguments.First();
+                        memberType = property.PropertyType.GenericTypeArguments.First();
                         this.Column = new MemberColumn("*", null, UseColumnAlias ? node.Member.Name : null) { Type = node.Type };
                         return node;
                     }
                 }
 
-                var tempColumn = this.Context.GetMappedColumn(type, node.Member.Name);
+                var tempColumn = this.Context.GetMappedColumn(memberType, node.Member.Name);
                 if (tempColumn == null)
                 {
-                    var typeMapper = TypeMapperCache.GetTypeMapper(type);
+                    var typeMapper = TypeMapperCache.GetTypeMapper(memberType);
                     var columnMapper = typeMapper.AllMembers.SingleOrDefault(m => m.Name == node.Member.Name);
-                    this.Column = new MemberColumn(columnMapper.ColumnName, Context.GetTableAlias(type), UseColumnAlias ? node.Member.Name : null) { Type = node.Type };
+                    this.Column = new MemberColumn(columnMapper.ColumnName, Context.GetTableAlias(TypeMapperCache.GetTransferTypeMapper(memberType)), UseColumnAlias ? node.Member.Name : null) { Type = node.Type };
                 }
                 else
+                {
                     this.Column = tempColumn;
+                }
             }
             else
             {

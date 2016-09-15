@@ -38,5 +38,14 @@ namespace Greedy.Toolkit.Expressions
                 return (expr as MemberExpression).Expression.IsParameter();
             return false;
         }
+
+        public static ParameterExpression GetParameterExpresion(this Expression expr)
+        {
+            if (expr.NodeType == ExpressionType.Parameter)
+                return expr as ParameterExpression;
+            if (expr.NodeType == ExpressionType.MemberAccess)
+                return (expr as MemberExpression).Expression.GetParameterExpresion();
+            return null;
+        }
     }
 }

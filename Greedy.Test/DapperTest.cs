@@ -9,21 +9,35 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace Greedy.Test
+namespace Greedy.OthTest
 {
     enum Gender
     {
         Male = 0,
         Female
     }
-    class Person
+
+    class Human
     {
-        public long Id { get; set; }
+        protected string Region { get; set; }   public long Id { get; set; }
         public string Name { get; set; }
         public int Age { get; set; }
         public string Address { get; set; }
         public bool Enabled { get; set; }
         public Gender Gender { get; set; }
+        public DateTime? CreatedDate { get; set; }
+    }
+}
+
+namespace Greedy.Test
+{
+    using Greedy.OthTest;
+
+
+
+    class Person : Human
+    {
+
     }
 
     class Article
@@ -397,8 +411,22 @@ namespace Greedy.Test
         [TestMethod]
         public void TestLike()
         {
-            var person = con.Query<Person>("select * from Person where name like @Name", new { Name="%ta%"}).FirstOrDefault();
+            var person = con.Query<Person>("select * from Person where name like @Name", new { Name = "%ta%" }).FirstOrDefault();
             Assert.AreNotEqual(0, person.Id, "Like查询失败");
+        }
+
+        [TestMethod]
+        public void TestInherit()
+        {
+            var person = con.Predicate<Person>().Where(p => p.Id == 1).First();
+            Assert.AreNotEqual(0, person.Id, "继承关系的类失败");
+        }
+
+        [TestMethod]
+        public void TestGetProperties()
+        {
+            var properties = typeof(Person).GetProperties();
+            Assert.IsTrue(properties.Any(p => p.Name == "Region"));
         }
     }
 }
