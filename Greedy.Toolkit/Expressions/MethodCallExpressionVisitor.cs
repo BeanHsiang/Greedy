@@ -45,26 +45,33 @@ namespace Greedy.Toolkit.Expressions
         private void ParseMethodContains(MethodCallExpression node)
         {
             var column = new FunctionColumn();
-            if (node.Object.NodeType == ExpressionType.MemberAccess || node.Object.NodeType == ExpressionType.Constant)
+            var objectVisitor = new MemberExpressionVisitor(Context);
+            var paramVisitor = new MemberExpressionVisitor(Context);
+            if (node.Object != null && (node.Object.NodeType == ExpressionType.MemberAccess || node.Object.NodeType == ExpressionType.Constant))
             {
-                var objectVisitor = new MemberExpressionVisitor(Context);
                 objectVisitor.Visit(node.Object);
-                if (objectVisitor.Column.Type == typeof(string))
-                {
-                    column.Formatter = "LOCATE({1}, {0}) > 0";
-                }
-                else
-                {
-                    column.Formatter = "{0} in {1}";
-                }
 
-                column.Add(objectVisitor.Column);
-
-                var paramVisitor = new MemberExpressionVisitor(Context);
                 paramVisitor.Visit(node.Arguments[0]);
-                column.Add(paramVisitor.Column);
-                this.Column = column;
+
             }
+            else
+            {
+                objectVisitor.Visit(node.Arguments[1]);
+
+                paramVisitor.Visit(node.Arguments[0]);
+            }
+
+            if (objectVisitor.Column.Type == typeof(string))
+            {
+                column.Formatter = "LOCATE({1}, {0}) > 0";
+            }
+            else
+            {
+                column.Formatter = "{0} in {1}";
+            }
+            column.Add(objectVisitor.Column);
+            column.Add(paramVisitor.Column);
+            this.Column = column;
         }
 
         private void ParseMethodCount(MethodCallExpression node)

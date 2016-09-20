@@ -262,6 +262,10 @@ namespace Greedy.Test
 
             var count3 = con.Get<Person>(p => "TestInsertStrongClassInstanceName".Contains(p.Name)).Count();
             Assert.AreNotEqual(0, count3, "获取带Contains方法的查询失败");
+
+            var ids = new long[] { 1, 2, 0 };
+            var count4 = con.Get<Person>(p => ids.Contains(p.Id)).Count();
+            Assert.AreNotEqual(0, count4, "获取数值型带Contains方法的查询失败");
         }
 
         [TestMethod]
