@@ -34,7 +34,7 @@ namespace Greedy.Dapper
         public static int Insert<T>(this IDbConnection cnn, object param, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             var type = param.GetType();
-            if (type.IsArray && type != typeof(T))
+            if (type.IsArray && !(param is IEnumerable<T>))
             {
                 object[] arr = (object[])param;
                 var count = 0;
