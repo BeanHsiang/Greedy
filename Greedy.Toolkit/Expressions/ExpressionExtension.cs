@@ -24,7 +24,7 @@ namespace Greedy.Toolkit.Expressions
                 case ExpressionType.MemberAccess:
                     var memberExpr = expr as MemberExpression;
 
-                    result = memberExpr.NodeType == ExpressionType.Constant || (memberExpr.Expression.NodeType == ExpressionType.Constant && memberExpr.Type.IsValueType);
+                    result = memberExpr.NodeType == ExpressionType.Constant || memberExpr.Type.IsValueType || (memberExpr.Expression != null && memberExpr.Expression.NodeType == ExpressionType.Constant);
                     break;
             }
             return result;

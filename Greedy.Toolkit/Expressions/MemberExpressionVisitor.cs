@@ -29,7 +29,7 @@ namespace Greedy.Toolkit.Expressions
 
         protected override Expression VisitMember(MemberExpression node)
         {
-            if (node.Expression.IsParameter())
+            if (node.Expression != null && node.Expression.IsParameter())
             {
                 var parameterExpresion = node.Expression.GetParameterExpresion();
                 var memberType = node.Member.DeclaringType;

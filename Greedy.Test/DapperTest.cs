@@ -19,7 +19,8 @@ namespace Greedy.OthTest
 
     class Human
     {
-        protected string Region { get; set; }   public long Id { get; set; }
+        public long Id { get; set; }
+        protected string Region { get; set; }
         public string Name { get; set; }
         public int Age { get; set; }
         public string Address { get; set; }
@@ -212,13 +213,13 @@ namespace Greedy.Test
             Assert.AreEqual(true, lastPerson.Id < id, "插入字典形式类型实例获取Id失败");
         }
 
-        //[TestMethod]
+        [TestMethod]
         public void TestDelete()
         {
             var sql = "select count(id) from person";
             var rowsCount = con.ExecuteScalar<int>(sql);
             var age = 30;
-            var count = con.Delete<Person>(p => p.Address == "ad" || (p.Age >= 19 && p.Age < age));
+            var count = con.Delete<Person>(p => p.Address == "ad" && p.CreatedDate >= DateTime.Now.AddDays(-1) || (p.Age >= 19 && p.Age < age));
             var rowsCount2 = con.ExecuteScalar<int>(sql);
 
             Assert.AreEqual(rowsCount - rowsCount2, count, "删除失败");
