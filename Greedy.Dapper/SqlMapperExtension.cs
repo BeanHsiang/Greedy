@@ -16,7 +16,7 @@ namespace Greedy.Dapper
     {
         private static TypeHandler typeHandler;
         private static IDbTransaction transaction;
-        private static int deep = 0;
+        private static IDictionary<int, int> deepCount = new Dictionary<int, int>();
 
         private static TypeHandler GetTypeHandler(IDbConnection cnn)
         {
@@ -145,8 +145,17 @@ namespace Greedy.Dapper
         /// <param name="dbConnection"></param>
         public static void BeginNestedTransaction(this IDbConnection dbConnection)
         {
-            transaction = dbConnection.BeginTransaction();
-            deep++;
+            var seq = dbConnection.GetHashCode();
+            if (!deepCount.ContainsKey(seq))
+            {
+                deepCount.Add(seq, 0);
+            }
+
+            if (deepCount[seq] <= 0)
+            {
+                transaction = dbConnection.BeginTransaction();
+            }
+            deepCount[seq] += 1;
         }
 
         /// <summary>
@@ -155,10 +164,12 @@ namespace Greedy.Dapper
         /// <param name="dbConnection"></param>
         public static void CommitNested(this IDbConnection dbConnection)
         {
-            deep--;
-            if (deep == 0)
+            var seq = dbConnection.GetHashCode();
+            deepCount[seq] -= 1;
+            if (deepCount[seq] == 0)
             {
                 transaction.Commit();
+                deepCount.Remove(seq);
             }
         }
 
@@ -168,10 +179,12 @@ namespace Greedy.Dapper
         /// <param name="dbConnection"></param>
         public static void RollbackNested(this IDbConnection dbConnection)
         {
-            deep--;
-            if (deep == 0)
+            var seq = dbConnection.GetHashCode();
+            deepCount[seq] -= 1;
+            if (deepCount[seq] == 0)
             {
                 transaction.Rollback();
+                deepCount.Remove(seq);
             }
         }
 
