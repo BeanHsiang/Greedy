@@ -33,6 +33,7 @@ namespace Greedy.OthTest
 namespace Greedy.Test
 {
     using Greedy.OthTest;
+    using System.Reflection;
 
 
 
@@ -430,7 +431,7 @@ namespace Greedy.Test
         [TestMethod]
         public void TestGetProperties()
         {
-            var properties = typeof(Person).GetProperties();
+            var properties = typeof(Person).GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.IsTrue(properties.Any(p => p.Name == "Region"));
         }
     }

@@ -15,7 +15,7 @@ namespace Greedy.Dapper
     static partial class SqlMapper
     {
         private static TypeHandler typeHandler;
-        private static IDbTransaction transaction;
+        private static IDictionary<int, IDbTransaction> transactions = new Dictionary<int, IDbTransaction>();
         private static IDictionary<int, int> deepCount = new Dictionary<int, int>();
 
         private static TypeHandler GetTypeHandler(IDbConnection cnn)
@@ -153,7 +153,15 @@ namespace Greedy.Dapper
 
             if (deepCount[seq] <= 0)
             {
-                transaction = dbConnection.BeginTransaction();
+                var transaction = dbConnection.BeginTransaction();
+                if (!transactions.ContainsKey(seq))
+                {
+                    transactions.Add(seq, transaction);
+                }
+                else
+                {
+                    transactions[seq] = transaction;
+                }
             }
             deepCount[seq] += 1;
         }
@@ -165,11 +173,20 @@ namespace Greedy.Dapper
         public static void CommitNested(this IDbConnection dbConnection)
         {
             var seq = dbConnection.GetHashCode();
-            deepCount[seq] -= 1;
-            if (deepCount[seq] == 0)
+            if (!deepCount.ContainsKey(seq))
             {
-                transaction.Commit();
+                return;
+            }
+            deepCount[seq] -= 1;
+            if (deepCount[seq] <= 0)
+            {
+                if (!transactions.ContainsKey(seq))
+                {
+                    return;
+                }
+                transactions[seq].Commit();
                 deepCount.Remove(seq);
+                transactions.Remove(seq);
             }
         }
 
@@ -180,11 +197,20 @@ namespace Greedy.Dapper
         public static void RollbackNested(this IDbConnection dbConnection)
         {
             var seq = dbConnection.GetHashCode();
-            deepCount[seq] -= 1;
-            if (deepCount[seq] == 0)
+            if (!deepCount.ContainsKey(seq))
             {
-                transaction.Rollback();
+                return;
+            }
+            deepCount[seq] -= 1;
+            if (deepCount[seq] <= 0)
+            {
+                if (!transactions.ContainsKey(seq))
+                {
+                    return;
+                }
+                transactions[seq].Rollback();
                 deepCount.Remove(seq);
+                transactions.Remove(seq);
             }
         }
 
@@ -208,6 +234,14 @@ namespace Greedy.Dapper
         {
             if (dbConnection.State != ConnectionState.Closed)
             {
+                var seq = dbConnection.GetHashCode();
+                if (transactions.ContainsKey(seq))
+                {
+                    transactions[seq].Rollback();
+                    transactions.Remove(seq);
+                    deepCount.Remove(seq);
+                }
+
                 dbConnection.Close();
             }
         }
