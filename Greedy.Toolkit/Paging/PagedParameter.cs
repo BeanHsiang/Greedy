@@ -31,7 +31,7 @@ namespace Greedy.Toolkit.Paging
         public PagedParameter()
             : this(DefaultPageIndex, DefaultPageSize)
         {
-        }
+        } 
 
         public PagedParameter(int pageIndex, int pageSize)
         {

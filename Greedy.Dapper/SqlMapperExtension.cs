@@ -1,22 +1,20 @@
-﻿using Greedy.Toolkit.Expressions;
-using Greedy.Toolkit.Sql;
+﻿using Greedy.Toolkit.Sql;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Greedy.Dapper
 {
     static partial class SqlMapper
     {
         private static TypeHandler typeHandler;
-        private static IDictionary<int, IDbTransaction> transactions = new Dictionary<int, IDbTransaction>();
-        private static IDictionary<int, int> deepCount = new Dictionary<int, int>();
+        private static ConcurrentDictionary<int, IDbTransaction> transactions = new ConcurrentDictionary<int, IDbTransaction>();
+        private static ConcurrentDictionary<int, int> deepCount = new ConcurrentDictionary<int, int>();
+        private static ConcurrentDictionary<int, Action<CallbackState>> callbackMap = new ConcurrentDictionary<int, Action<CallbackState>>();
 
         private static TypeHandler GetTypeHandler(IDbConnection cnn)
         {
@@ -64,6 +62,16 @@ namespace Greedy.Dapper
         public static int Update<T>(this IDbConnection cnn, object param, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             return cnn.Execute(GetTypeHandler(cnn).GetUpdateSql<T>(param), param, transaction, commandTimeout);
+        }
+
+        /// <summary>
+        /// Update rows according to some unspecial condition expressions
+        /// </summary>
+        /// <returns>Number of rows affected</returns>
+        public static int Update<T>(this IDbConnection cnn, IDictionary<string, object> source, IDictionary<string, object> condion, IDbTransaction transaction = null, int? commandTimeout = null)
+        {
+            var sql = GetTypeHandler(cnn).GetUpdateSql<T>(source, condion);
+            return cnn.Execute(sql, source.Concat(condion), transaction, commandTimeout);
         }
 
         /// <summary>
@@ -146,24 +154,16 @@ namespace Greedy.Dapper
         public static void BeginNestedTransaction(this IDbConnection dbConnection)
         {
             var seq = dbConnection.GetHashCode();
-            if (!deepCount.ContainsKey(seq))
+            var count = deepCount.AddOrUpdate(seq, 0, (k, v) =>
             {
-                deepCount.Add(seq, 0);
-            }
+                return v + 1;
+            });
 
-            if (deepCount[seq] <= 0)
+            if (count == 0)
             {
                 var transaction = dbConnection.BeginTransaction();
-                if (!transactions.ContainsKey(seq))
-                {
-                    transactions.Add(seq, transaction);
-                }
-                else
-                {
-                    transactions[seq] = transaction;
-                }
+                transactions.TryAdd(seq, transaction);
             }
-            deepCount[seq] += 1;
         }
 
         /// <summary>
@@ -173,20 +173,23 @@ namespace Greedy.Dapper
         public static void CommitNested(this IDbConnection dbConnection)
         {
             var seq = dbConnection.GetHashCode();
-            if (!deepCount.ContainsKey(seq))
+            int count;
+            if (deepCount.TryGetValue(seq, out count))
             {
-                return;
-            }
-            deepCount[seq] -= 1;
-            if (deepCount[seq] <= 0)
-            {
-                if (!transactions.ContainsKey(seq))
+                if (count == 0)
                 {
-                    return;
+                    IDbTransaction transaction;
+                    if (transactions.TryGetValue(seq, out transaction))
+                    {
+                        transaction.Commit();
+                        deepCount.TryRemove(seq, out count);
+                        transactions.TryRemove(seq, out transaction);
+                    }
                 }
-                transactions[seq].Commit();
-                deepCount.Remove(seq);
-                transactions.Remove(seq);
+                else
+                {
+                    deepCount.TryUpdate(seq, count - 1, count);
+                }
             }
         }
 
@@ -197,20 +200,23 @@ namespace Greedy.Dapper
         public static void RollbackNested(this IDbConnection dbConnection)
         {
             var seq = dbConnection.GetHashCode();
-            if (!deepCount.ContainsKey(seq))
+            int count;
+            if (deepCount.TryGetValue(seq, out count))
             {
-                return;
-            }
-            deepCount[seq] -= 1;
-            if (deepCount[seq] <= 0)
-            {
-                if (!transactions.ContainsKey(seq))
+                if (count == 0)
                 {
-                    return;
+                    IDbTransaction transaction;
+                    if (transactions.TryGetValue(seq, out transaction))
+                    {
+                        transaction.Rollback();
+                        deepCount.TryRemove(seq, out count);
+                        transactions.TryRemove(seq, out transaction);
+                    }
                 }
-                transactions[seq].Rollback();
-                deepCount.Remove(seq);
-                transactions.Remove(seq);
+                else
+                {
+                    deepCount.TryUpdate(seq, count - 1, count);
+                }
             }
         }
 
@@ -235,15 +241,44 @@ namespace Greedy.Dapper
             if (dbConnection.State != ConnectionState.Closed)
             {
                 var seq = dbConnection.GetHashCode();
-                if (transactions.ContainsKey(seq))
+                IDbTransaction transaction;
+                if (transactions.TryGetValue(seq, out transaction))
                 {
-                    transactions[seq].Rollback();
-                    transactions.Remove(seq);
-                    deepCount.Remove(seq);
+                    transaction.Rollback();
+                    int count;
+                    deepCount.TryRemove(seq, out count);
+                    transactions.TryRemove(seq, out transaction);
                 }
 
                 dbConnection.Close();
             }
         }
+
+        public static void Bind(this IDbConnection connection, Action<CallbackState> action)
+        {
+            callbackMap.TryAdd(connection.GetHashCode(), action);
+        }
+
+        public static void Unbind(this IDbConnection connection)
+        {
+            Action<CallbackState> action;
+            callbackMap.TryRemove(connection.GetHashCode(), out action);
+        }
+
+        internal static void Callback(this IDbConnection connection, CommandDefinition command)
+        {
+            Action<CallbackState> action;
+            if (callbackMap.TryGetValue(connection.GetHashCode(), out action))
+            {
+                action(new CallbackState { CommandText = command.CommandText, Parameter = command.Parameters });
+            }
+        }
+    }
+
+    public class CallbackState
+    {
+        public string CommandText { get; set; }
+
+        public object Parameter { get; set; }
     }
 }

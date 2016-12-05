@@ -1331,6 +1331,7 @@ this IDbConnection cnn, string sql, object param = null, IDbTransaction transact
                         }
                     }
                     command.OnCompleted();
+                    cnn.Callback(command);
                 }
                 finally
                 {
@@ -1624,6 +1625,7 @@ this IDbConnection cnn, string sql, object param = null, IDbTransaction transact
                 reader = null;
 
                 command.OnCompleted();
+                cnn.Callback(command);
             }
             finally
             {
@@ -1877,6 +1879,7 @@ this IDbConnection cnn, string sql, Func<TFirst, TSecond, TThird, TFourth, TRetu
                     {
                         while (reader.NextResult()) { }
                         command.OnCompleted();
+                        cnn.Callback(command);
                     }
                 }
             }
@@ -1948,6 +1951,7 @@ this IDbConnection cnn, string sql, Func<TFirst, TSecond, TThird, TFourth, TRetu
                     {
                         while (reader.NextResult()) { }
                         command.OnCompleted();
+                        cnn.Callback(command);
                     }
                 }
             }
@@ -3435,6 +3439,7 @@ this IDbConnection cnn, string sql, Func<TFirst, TSecond, TThird, TFourth, TRetu
                 if (wasClosed) cnn.Open();
                 int result = cmd.ExecuteNonQuery();
                 command.OnCompleted();
+                cnn.Callback(command);
                 return result;
             }
             finally
@@ -3463,6 +3468,7 @@ this IDbConnection cnn, string sql, Func<TFirst, TSecond, TThird, TFourth, TRetu
                 if (wasClosed) cnn.Open();
                 result = cmd.ExecuteScalar();
                 command.OnCompleted();
+                cnn.Callback(command);
             }
             finally
             {

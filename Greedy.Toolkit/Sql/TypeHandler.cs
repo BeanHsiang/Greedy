@@ -116,6 +116,23 @@ namespace Greedy.Toolkit.Sql
             return sql;
         }
 
+        public string GetUpdateSql<T>(IDictionary<string, object> source, IDictionary<string, object> condition)
+        {
+            var setSql = new StringBuilder();
+            foreach (KeyValuePair<string, object> item in source)
+            {
+                setSql.AppendFormat("{0} = {1},", SqlGenerator.DecorateName(item.Key), SqlGenerator.DecorateParameter(item.Key));
+            }
+
+            var whereSql = new StringBuilder();
+            foreach (KeyValuePair<string, object> item in condition)
+            {
+                whereSql.AppendFormat("{0} = {1} and", SqlGenerator.DecorateName(item.Key), SqlGenerator.DecorateParameter(item.Key));
+            }
+
+            return SqlGenerator.GetUpdateSql(TypeMapperCache.GetTypeMapper(typeof(T)), setSql.Remove(setSql.Length - 1, 1).ToString(), whereSql.Remove(whereSql.Length - 3, 3).ToString());
+        }
+
         public string GetUpdateSql<T>(Expression<Func<T, bool>> expression, IDictionary<Expression<Func<T, object>>, object> paramInput, out  IDictionary<string, dynamic> paramOuput)
         {
             var context = new ExpressionVisitorContext(SqlGenerator);

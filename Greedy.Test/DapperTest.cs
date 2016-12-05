@@ -33,6 +33,7 @@ namespace Greedy.OthTest
 namespace Greedy.Test
 {
     using Greedy.OthTest;
+    using System.Diagnostics;
     using System.Reflection;
 
 
@@ -175,6 +176,26 @@ namespace Greedy.Test
                 .Update();
 
             Assert.AreEqual(1, count2, "更新带表达式条件的实例失败");
+        }
+
+        [TestMethod]
+        public void TestUpdateDictionaryClassInstance()
+        {
+            var dic = new Dictionary<string, object>();
+
+            dic.Add("Name", "TestInsertDictionaryClassInstanceName");
+            dic.Add("Age", rand.Next(1, 100));
+            dic.Add("Address", "TestInsertDictionaryClassInstanceAddress");
+            dic.Add("Enabled", true);
+            dic.Add("Createddate", DateTime.Now);
+
+            var dicCondition = new Dictionary<string, object>();
+
+            dicCondition.Add("Age", 50);
+
+
+            var count = con.Update<Person>(dic, dicCondition);
+            Assert.AreNotEqual(0, count, "批量任意条件更新失败");
         }
 
         [TestMethod]
@@ -433,6 +454,26 @@ namespace Greedy.Test
         {
             var properties = typeof(Person).GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.IsTrue(properties.Any(p => p.Name == "Region"));
+        }
+
+        [TestMethod]
+        public void TestCallback()
+        {
+            Parallel.For(0, 10000, (i) =>
+            {
+                using (var localConnection = new MySqlConnection(conStr))
+                {
+                    localConnection.Bind(state =>
+                    {
+                        Debug.WriteLine("{0}:{1}", state.CommandText, state.Parameter == null ? "" : state.Parameter.GetType().FullName);
+                    });
+
+                    var person = new Person() { Name = "TestInsertStrongClassInstanceName", Age = rand.Next(1, 100), Address = "TestInsertStrongClassInstanceAddress", Enabled = true };
+
+                    var count = localConnection.Insert<Person>(person);
+                    localConnection.Unbind();
+                }
+            });
         }
     }
 }
