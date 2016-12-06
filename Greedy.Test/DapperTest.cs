@@ -459,9 +459,9 @@ namespace Greedy.Test
         [TestMethod]
         public void TestCallback()
         {
-            Parallel.For(0, 10000, (i) =>
+            Parallel.For(0, 5000, (i) =>
             {
-                using (var localConnection = new MySqlConnection(conStr))
+                using (var localConnection = new GreedyConnection(conStr, str => new MySqlConnection(str)))
                 {
                     localConnection.Bind(state =>
                     {

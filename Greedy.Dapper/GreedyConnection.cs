@@ -20,6 +20,7 @@ namespace Greedy.Dapper
         internal IDbConnection Connection { get; private set; }
         private IDbTransaction Transaction { get; set; }
         private int deepCount = 0;
+        private object transactionObj = new object();
 
         public GreedyConnection(IDbConnection connection)
         {
@@ -33,26 +34,32 @@ namespace Greedy.Dapper
 
         public IDbTransaction BeginTransaction(IsolationLevel il)
         {
-            Interlocked.Increment(ref deepCount);
-            if (Transaction == null)
+            lock (transactionObj)
             {
-                bool wasClosed = State == ConnectionState.Closed;
-                if (wasClosed) Open();
-                Transaction = Connection.BeginTransaction(il);
-                if (wasClosed) Close();
+                Interlocked.Increment(ref deepCount);
+                if (Transaction == null)
+                {
+                    bool wasClosed = State == ConnectionState.Closed;
+                    if (wasClosed) Open();
+                    Transaction = Connection.BeginTransaction(il);
+                    if (wasClosed) Close();
+                }
             }
             return Transaction;
         }
 
         public IDbTransaction BeginTransaction()
         {
-            Interlocked.Increment(ref deepCount);
-            if (Transaction == null)
+            lock (transactionObj)
             {
-                bool wasClosed = State == ConnectionState.Closed;
-                if (wasClosed) Open();
-                Transaction = Connection.BeginTransaction();
-                if (wasClosed) Close();
+                Interlocked.Increment(ref deepCount);
+                if (Transaction == null)
+                {
+                    bool wasClosed = State == ConnectionState.Closed;
+                    if (wasClosed) Open();
+                    Transaction = Connection.BeginTransaction();
+                    if (wasClosed) Close();
+                }
             }
             return Transaction;
         }
@@ -113,10 +120,27 @@ namespace Greedy.Dapper
 
         public void Rollback()
         {
-            Interlocked.Decrement(ref deepCount);
-            if (Transaction != null && deepCount <= 0)
+            lock (transactionObj)
             {
-                lock (Transaction)
+                Interlocked.Decrement(ref deepCount);
+                if (Transaction != null && deepCount <= 0)
+                {
+                    bool wasClosed = State == ConnectionState.Closed;
+                    if (wasClosed) Open();
+                    Transaction.Rollback();
+                    Transaction = null;
+                    if (wasClosed) Close();
+                    Interlocked.Exchange(ref deepCount, 0);
+                }
+            }
+        }
+
+        private void ForceRollback()
+        {
+            lock (transactionObj)
+            {
+                Interlocked.Exchange(ref deepCount, 0);
+                if (Transaction != null)
                 {
                     bool wasClosed = State == ConnectionState.Closed;
                     if (wasClosed) Open();
@@ -129,16 +153,17 @@ namespace Greedy.Dapper
 
         public void Commit()
         {
-            Interlocked.Decrement(ref deepCount);
-            if (Transaction != null && deepCount <= 0)
+            lock (transactionObj)
             {
-                lock (Transaction)
+                Interlocked.Decrement(ref deepCount);
+                if (Transaction != null && deepCount <= 0)
                 {
                     bool wasClosed = State == ConnectionState.Closed;
                     if (wasClosed) Open();
                     Transaction.Commit();
                     Transaction = null;
                     if (wasClosed) Close();
+                    Interlocked.Exchange(ref deepCount, 0);
                 }
             }
         }
@@ -150,7 +175,7 @@ namespace Greedy.Dapper
 
         public void Dispose()
         {
-            Rollback();
+            ForceRollback();
             Close();
             Connection.Dispose();
         }
