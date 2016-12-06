@@ -12,8 +12,6 @@ namespace Greedy.Dapper
     static partial class SqlMapper
     {
         private static TypeHandler typeHandler;
-        private static ConcurrentDictionary<int, IDbTransaction> transactions = new ConcurrentDictionary<int, IDbTransaction>();
-        private static ConcurrentDictionary<int, int> deepCount = new ConcurrentDictionary<int, int>();
         private static ConcurrentDictionary<int, Action<CallbackState>> callbackMap = new ConcurrentDictionary<int, Action<CallbackState>>();
 
         private static TypeHandler GetTypeHandler(IDbConnection cnn)
@@ -136,122 +134,6 @@ namespace Greedy.Dapper
         public static IQueryable<T> Predicate<T>(this IDbConnection dbConnection)
         {
             return new DataQuery<T>(new QueryProvider(dbConnection));
-        }
-
-        /// <summary>
-        /// Create a transaction for nested
-        /// </summary>
-        /// <param name="dbConnection"></param>
-        //public static void BeginGlobalTransaction(this IDbConnection dbConnection)
-        //{
-        //    BeginNestedTransaction(dbConnection);
-        //}
-
-        /// <summary>
-        /// Create a transaction for nested
-        /// </summary>
-        /// <param name="dbConnection"></param>
-        public static void BeginNestedTransaction(this IDbConnection dbConnection)
-        {
-            var seq = dbConnection.GetHashCode();
-            var count = deepCount.AddOrUpdate(seq, 0, (k, v) =>
-            {
-                return v + 1;
-            });
-
-            if (count == 0)
-            {
-                var transaction = dbConnection.BeginTransaction();
-                transactions.TryAdd(seq, transaction);
-            }
-        }
-
-        /// <summary>
-        /// Commit a transaction for nested
-        /// </summary>
-        /// <param name="dbConnection"></param>
-        public static void CommitNested(this IDbConnection dbConnection)
-        {
-            var seq = dbConnection.GetHashCode();
-            int count;
-            if (deepCount.TryGetValue(seq, out count))
-            {
-                if (count == 0)
-                {
-                    IDbTransaction transaction;
-                    if (transactions.TryGetValue(seq, out transaction))
-                    {
-                        transaction.Commit();
-                        deepCount.TryRemove(seq, out count);
-                        transactions.TryRemove(seq, out transaction);
-                    }
-                }
-                else
-                {
-                    deepCount.TryUpdate(seq, count - 1, count);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Rollback a transaction for nested
-        /// </summary>
-        /// <param name="dbConnection"></param>
-        public static void RollbackNested(this IDbConnection dbConnection)
-        {
-            var seq = dbConnection.GetHashCode();
-            int count;
-            if (deepCount.TryGetValue(seq, out count))
-            {
-                if (count == 0)
-                {
-                    IDbTransaction transaction;
-                    if (transactions.TryGetValue(seq, out transaction))
-                    {
-                        transaction.Rollback();
-                        deepCount.TryRemove(seq, out count);
-                        transactions.TryRemove(seq, out transaction);
-                    }
-                }
-                else
-                {
-                    deepCount.TryUpdate(seq, count - 1, count);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Open the connection
-        /// </summary>
-        /// <param name="dbConnection"></param>
-        public static void OpenConnection(this IDbConnection dbConnection)
-        {
-            if (dbConnection.State != ConnectionState.Open)
-            {
-                dbConnection.Open();
-            }
-        }
-
-        /// <summary>
-        /// Close the connection
-        /// </summary>
-        /// <param name="dbConnection"></param>
-        public static void CloseConnection(this IDbConnection dbConnection)
-        {
-            if (dbConnection.State != ConnectionState.Closed)
-            {
-                var seq = dbConnection.GetHashCode();
-                IDbTransaction transaction;
-                if (transactions.TryGetValue(seq, out transaction))
-                {
-                    transaction.Rollback();
-                    int count;
-                    deepCount.TryRemove(seq, out count);
-                    transactions.TryRemove(seq, out transaction);
-                }
-
-                dbConnection.Close();
-            }
         }
 
         public static void Bind(this IDbConnection connection, Action<CallbackState> action)
