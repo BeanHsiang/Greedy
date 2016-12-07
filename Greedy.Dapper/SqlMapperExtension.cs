@@ -12,7 +12,7 @@ namespace Greedy.Dapper
     static partial class SqlMapper
     {
         private static TypeHandler typeHandler;
-        private static ConcurrentDictionary<int, Action<CallbackState>> callbackMap = new ConcurrentDictionary<int, Action<CallbackState>>();
+        private static ConcurrentDictionary<IDbConnection, Action<CallbackState>> callbackMap = new ConcurrentDictionary<IDbConnection, Action<CallbackState>>();
 
         private static TypeHandler GetTypeHandler(IDbConnection cnn)
         {
@@ -138,19 +138,19 @@ namespace Greedy.Dapper
 
         public static void Bind(this IDbConnection connection, Action<CallbackState> action)
         {
-            callbackMap.TryAdd(connection.GetHashCode(), action);
+            callbackMap.TryAdd(connection, action);
         }
 
         public static void Unbind(this IDbConnection connection)
         {
             Action<CallbackState> action;
-            callbackMap.TryRemove(connection.GetHashCode(), out action);
+            callbackMap.TryRemove(connection, out action);
         }
 
         internal static void Callback(this IDbConnection connection, CommandDefinition command)
         {
             Action<CallbackState> action;
-            if (callbackMap.TryGetValue(connection.GetHashCode(), out action))
+            if (callbackMap.TryGetValue(connection, out action))
             {
                 action(new CallbackState { CommandText = command.CommandText, Parameter = command.Parameters });
             }

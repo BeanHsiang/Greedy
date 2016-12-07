@@ -13,6 +13,10 @@ namespace Greedy.Dapper
         void Rollback();
 
         void Commit();
+
+        void Bind(Action<CallbackState> action);
+
+        void UnBind();
     }
 
     public class GreedyConnection : IGreedyConnection
@@ -173,9 +177,20 @@ namespace Greedy.Dapper
             get { return Connection.State; }
         }
 
+        public void Bind(Action<CallbackState> action)
+        {
+            Connection.Bind(action);
+        }
+
+        public void UnBind()
+        {
+            Connection.Unbind();
+        }
+
         public void Dispose()
         {
             ForceRollback();
+            UnBind();
             Close();
             Connection.Dispose();
         }
