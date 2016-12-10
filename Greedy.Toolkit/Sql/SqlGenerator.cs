@@ -39,7 +39,7 @@ namespace Greedy.Toolkit.Sql
 
         public string GetUpdateSql(ITypeMapper mapper)
         {
-            return GetUpdateSql(mapper, GetConditionSql(mapper.AllMembers.Except(mapper.GetKeyMembers(true))), GetConditionSql(mapper.GetKeyMembers(true)));
+            return GetUpdateSql(mapper, GetConditionSql(mapper.AllMembers.Except(mapper.GetKeyMembers(true), TypeHandler.MemberMapperComparer)), GetConditionSql(mapper.GetKeyMembers(true)));
         }
 
         public string GetUpdateSql(ITypeMapper mapper, string setSql, string whereSql)

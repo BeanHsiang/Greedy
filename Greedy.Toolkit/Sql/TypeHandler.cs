@@ -12,7 +12,7 @@ namespace Greedy.Toolkit.Sql
 {
     class TypeHandler
     {
-        private static MemberMapperComparer MemberMapperComparer = new MemberMapperComparer();
+        internal static MemberMapperComparer MemberMapperComparer = new MemberMapperComparer();
         private static ISet<Tuple<int, int, string>> insertSqlCache = new HashSet<Tuple<int, int, string>>();
         private static ISet<Tuple<int, int, string>> insertSqlWithIdentityCache = new HashSet<Tuple<int, int, string>>();
         private static ISet<Tuple<int, int, string>> updateSqlCache = new HashSet<Tuple<int, int, string>>();

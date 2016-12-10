@@ -54,7 +54,7 @@ namespace Greedy.Toolkit.Sql
         {
             if (Object.ReferenceEquals(obj, null)) return 0;
 
-            return obj.Name.GetHashCode();
+            return obj.Name.ToLower().GetHashCode();
         }
     }
 }

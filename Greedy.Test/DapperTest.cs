@@ -156,8 +156,7 @@ namespace Greedy.Test
         public void TestUpdateAnonymousClassInstance()
         {
             var person = con.Query<Person>("select * from Person order by id desc limit 1;").First();
-            var updatePerson = new { Id = person.Id, Age = person.Age + 1, Address = "TestUpdateAnonymousClassInstanceAddress", Enabled = true };
-
+            var updatePerson = new { Id = person.Id, Age = person.Age + 1 };
             var count = con.Update<Person>(updatePerson);
             Assert.AreEqual(1, count, "更新匿名类型实例失败");
         }
@@ -214,9 +213,11 @@ namespace Greedy.Test
         {
             var lastPerson = con.Query<Person>("select * from Person order by id desc limit 1;").First();
 
-            var person = new { Name = "TestInsertWithIdentityAnonymousClassInstanceName", Age = rand.Next(1, 100), Address = "TestInsertWithIdentityAnonymousClassInstanceAddress", Enabled = true };
+            var person = new { Name = "TestInsertWithIdentityAnonymousClassInstanceName",  Address = "TestInsertWithIdentityAnonymousClassInstanceAddress", Enabled = true };
 
             var id = con.InsertWithIdentity<Person>(person);
+            var newPerson = con.Query<Person>("select * from Person order by id desc limit 1;").First();
+
             Assert.AreEqual(true, lastPerson.Id < id, "插入匿名类型实例获取Id失败");
         }
 
@@ -456,7 +457,7 @@ namespace Greedy.Test
             Assert.IsTrue(properties.Any(p => p.Name == "Region"));
         }
 
-        [TestMethod]
+        //[TestMethod]
         public void TestCallback()
         {
             Parallel.For(0, 5000, (i) =>
