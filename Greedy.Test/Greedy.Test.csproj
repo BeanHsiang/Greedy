@@ -70,12 +70,9 @@
       <Project>{b20270f1-01ce-4c19-9b36-9ab6bf3afb30}</Project>
       <Name>Greedy.QueryEngine</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Greedy.Toolkit\Greedy.Toolkit.csproj">
-      <Project>{a503f132-88f9-4200-aebd-a64986d886f5}</Project>
-      <Name>Greedy.Toolkit</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="qconf.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

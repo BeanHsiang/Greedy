@@ -16,6 +16,7 @@ namespace Greedy.Toolkit.Sql
     public enum KeyType : byte
     {
         None,
-        Identity
+        Identity,
+        Snxowflake
     }
 }

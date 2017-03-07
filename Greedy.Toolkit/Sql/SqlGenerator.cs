@@ -26,8 +26,8 @@ namespace Greedy.Toolkit.Sql
         public string GetInsertSql(ITypeMapper mapper)
         {
             var sb = new StringBuilder();
-            var columns = mapper.AllMembers.Where(m => !m.IsIdentity).Aggregate(new StringBuilder(), (s, item) => { return s.AppendFormat("{0},", DecorateName(item.ColumnName)); });
-            var parameters = mapper.AllMembers.Where(m => !m.IsIdentity).Aggregate(new StringBuilder(), (s, item) => { return s.AppendFormat("{0},", DecorateParameter(item.Name)); });
+            var columns = mapper.AllMembers.Where(m => m.KeyType != KeyType.Identity).Aggregate(new StringBuilder(), (s, item) => { return s.AppendFormat("{0},", DecorateName(item.ColumnName)); });
+            var parameters = mapper.AllMembers.Where(m => m.KeyType != KeyType.Identity).Aggregate(new StringBuilder(), (s, item) => { return s.AppendFormat("{0},", DecorateParameter(item.Name)); });
             sb.AppendFormat("Insert into {0}({1}) Values({2})", DecorateName(mapper.TableName), columns.Remove(columns.Length - 1, 1), parameters.Remove(parameters.Length - 1, 1));
             return sb.ToString();
         }

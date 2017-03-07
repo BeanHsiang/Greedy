@@ -26,7 +26,7 @@ namespace Greedy.Toolkit.Sql
 
         public IEnumerable<MemberMapper> GetKeyMembers(bool withIdentityMember)
         {
-            return withIdentityMember ? this.AllMembers.Where(m => m.IsKey) : this.AllMembers.Where(m => m.IsKey && !m.IsIdentity);
+            return withIdentityMember ? this.AllMembers.Where(m => m.IsPrimaryKey) : this.AllMembers.Where(m => m.IsPrimaryKey && m.KeyType != KeyType.Identity);
         }
 
         public TypeMapper()
@@ -69,7 +69,7 @@ namespace Greedy.Toolkit.Sql
                 var tableAttr = type.GetCustomAttributes(typeof(TableAttribute), true).FirstOrDefault() as TableAttribute;
 #endif
                 this.TableName = tableAttr == null ? this.Name : tableAttr.Name;
-                if (!this.AllMembers.Any(m => m.IsKey))
+                if (!this.AllMembers.Any(m => m.IsPrimaryKey))
                 {
                     var id = this.AllMembers.SingleOrDefault(m => m.Name.Equals("id", StringComparison.OrdinalIgnoreCase));
                     //if (id == null)
@@ -78,8 +78,8 @@ namespace Greedy.Toolkit.Sql
                     //}
                     if (id != null)
                     {
-                        id.IsKey = true;
-                        id.IsIdentity = true;
+                        id.IsPrimaryKey = true;
+                        id.KeyType = KeyType.Identity;
                     }
                 }
             }

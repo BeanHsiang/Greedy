@@ -19,6 +19,7 @@ namespace Greedy.OthTest
 
     class Human
     {
+        [Key(KeyType.Snxowflake)]
         public long Id { get; set; }
         protected string Region { get; set; }
         public string Name { get; set; }
@@ -213,7 +214,7 @@ namespace Greedy.Test
         {
             var lastPerson = con.Query<Person>("select * from Person order by id desc limit 1;").First();
 
-            var person = new { Name = "TestInsertWithIdentityAnonymousClassInstanceName",  Address = "TestInsertWithIdentityAnonymousClassInstanceAddress", Enabled = true };
+            var person = new { Name = "TestInsertWithIdentityAnonymousClassInstanceName", Address = "TestInsertWithIdentityAnonymousClassInstanceAddress", Enabled = true };
 
             var id = con.InsertWithIdentity<Person>(person);
             var newPerson = con.Query<Person>("select * from Person order by id desc limit 1;").First();
@@ -476,6 +477,18 @@ namespace Greedy.Test
                 }
             });
         }
+
+        //[TestMethod]
+        //public void TestSnowflake()
+        //{
+        //    Snowflake svr = new Snowflake(2, 13);
+
+        //    int count = 10000;
+        //    while (count-- > 0)
+        //    {
+        //        Debug.WriteLine(svr.GenerateId());
+        //    }
+        //}
     }
 }
 

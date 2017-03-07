@@ -9,9 +9,10 @@ namespace Greedy.Toolkit.Sql
     {
         internal string Name { get; set; }
         internal string ColumnName { get; set; }
-        internal bool IsKey { get; set; }
-        internal bool IsIdentity { get; set; }
+        internal bool IsPrimaryKey { get; set; }
+        //internal bool IsIdentity { get; set; }
         //internal bool IsBasicType { get; set; }
+        internal KeyType KeyType { get; set; }
 
         public MemberMapper()
         {
@@ -36,8 +37,9 @@ namespace Greedy.Toolkit.Sql
 #endif
             if (keyAttr != null)
             {
-                this.IsKey = true;
-                this.IsIdentity = keyAttr.KeyType == KeyType.Identity;
+                this.IsPrimaryKey = true;
+                //this.IsIdentity = keyAttr.KeyType == KeyType.Identity;
+                this.KeyType = keyAttr.KeyType;
             }
         }
     }

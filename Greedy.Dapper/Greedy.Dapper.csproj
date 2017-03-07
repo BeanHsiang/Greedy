@@ -35,6 +35,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -109,16 +110,19 @@
     <Compile Include="..\Greedy.Toolkit\Sql\TypeMapperCache.cs">
       <Link>Sql\TypeMapperCache.cs</Link>
     </Compile>
+    <Compile Include="Configuration\GreedyDapperSection.cs" />
+    <Compile Include="Configuration\SnowflakeElement.cs" />
     <Compile Include="DataQuery.cs" />
     <Compile Include="Expressions\QueryExpressionParser.cs" />
     <Compile Include="GreedyConnection.cs" />
+    <Compile Include="GreedyConnectionOption.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryProvider.cs" />
+    <Compile Include="Snowflake.cs" />
     <Compile Include="SqlMapper.cs" />
     <Compile Include="SqlMapperExtension.cs" />
     <Compile Include="Sql\ColumnSet.cs" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

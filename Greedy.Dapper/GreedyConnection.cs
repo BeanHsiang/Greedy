@@ -36,6 +36,11 @@ namespace Greedy.Dapper
             this.Connection = factory(connectionString);
         }
 
+        public GreedyConnection(GreedyConnectionOption option, Func<GreedyConnectionOption, IDbConnection> factory)
+        {
+            this.Connection = factory(option);
+        }
+
         public IDbTransaction BeginTransaction(IsolationLevel il)
         {
             lock (transactionObj)
