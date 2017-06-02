@@ -203,7 +203,6 @@ namespace Greedy.Dapper
                         var method = Expression.Call(instance, setMethod, valueParameter);
                         var expression = Expression.Lambda<Action<long>>(method, valueParameter).Compile();
                         var nextValue = seed.GenerateId();
-                        System.Diagnostics.Debug.WriteLine(nextValue);
                         expression(nextValue);
                     }
                 }
