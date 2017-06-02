@@ -111,7 +111,8 @@ namespace Greedy.Test
 
             var person2 = new Person() { Name = "TestInsertBatchStrongClassInstanceName", Age = rand.Next(1, 100), Address = "TestInsertBatchStrongClassInstanceAddress", Enabled = true };
 
-            var count = con.Insert<Person>(new Person[] { person, person2 });
+            //var count = con.Insert<Person>(new Person[] { person, person2 });
+            var count = con.Insert<Person>(new List<Person> { person, person2 });
             Assert.AreEqual(2, count, "批量插入强类型实例失败");
         }
 
