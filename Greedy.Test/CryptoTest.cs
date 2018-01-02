@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Security.Cryptography;
 using System.Text;
 //using System.Web.Security;
+using System.Diagnostics;
 
 namespace Greedy.Test
 {
@@ -29,5 +30,38 @@ namespace Greedy.Test
         //    Assert.AreEqual(source.ToMd5().ToLower(), sign);
         //    Assert.AreEqual(sign, sign2.ToLower());
         //}
+
+        [TestMethod]
+        public void TestNull()
+        {
+            var p = GetPerson();
+            var code = Type.GetTypeHandle(p);
+            Debug.WriteLine(code);
+        }
+
+        [TestMethod]
+        public void TestTimeSpan()
+        {
+            string time1 = "2010-5-26";
+            string time2 = "2011-6-26";
+            DateTime t1 = Convert.ToDateTime(time1);
+            DateTime t2 = Convert.ToDateTime(time2);
+ 
+            TimeSpan interval =  t2 - t1;
+            Console.WriteLine("Value of TimeSpan: {0}", interval);
+
+            Debug.WriteLine("{0:N5} days, as follows:", interval.TotalDays);
+            Debug.WriteLine("   Days:         {0,3}", interval.Days);
+            Debug.WriteLine("   Hours:        {0,3}", interval.Hours);
+            Debug.WriteLine("   Minutes:      {0,3}", interval.Minutes);
+            Debug.WriteLine("   Seconds:      {0,3}", interval.Seconds);
+            Debug.WriteLine("   Milliseconds: {0,3}", interval.Milliseconds);
+        }
+
+
+        Person GetPerson()
+        {
+            return null;
+        }
     }
 }
