@@ -323,7 +323,7 @@ namespace Greedy.Dapper
             /// <returns>The typed value</returns>
             object Parse(Type destinationType, object value);
         }
-#if !DNXCORE50
+#if !NETSTANDARD2_0
         /// <summary>
         /// A type handler for data-types that are supported by the underlying provider, but which need
         /// a well-known UdtTypeName to be specified
@@ -920,7 +920,7 @@ namespace Greedy.Dapper
                 return DynamicParameters.EnumerableMultiParameter;
             }
 
-#if !DNXCORE50
+#if !NETSTANDARD2_0
             switch (type.FullName)
             {
                 case "Microsoft.SqlServer.Types.SqlGeography":
