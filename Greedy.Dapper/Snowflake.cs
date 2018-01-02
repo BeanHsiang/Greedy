@@ -52,6 +52,9 @@ namespace Greedy.Dapper
         //上次生成id的时间截  
         private long lastTimestamp = -1L;
 
+        //加锁对象
+        private static object syncRoot = new object();
+
         public Snowflake()
         {
             try
@@ -82,36 +85,39 @@ namespace Greedy.Dapper
 
         public long GenerateId()
         {
-            long timestamp = GenerateTime();
-            if (timestamp < lastTimestamp)
+            lock (syncRoot)
             {
-                throw new Exception(string.Format("Clock moved backwards.  Refusing to generate id for {0:d} milliseconds", lastTimestamp - timestamp));
-            }
-            //如果是同一时间生成的，则自增
-            if (timestamp == lastTimestamp)
-            {
-                sequence = (sequence + 1) & sequenceMask;
-                if (sequence == 0)
+                long timestamp = GenerateTime();
+                if (timestamp < lastTimestamp)
                 {
-                    //生成下一个毫秒级的序列  
-                    timestamp = TilNextMillis();
-                    //序列从0开始  
+                    throw new Exception(string.Format("Clock moved backwards.  Refusing to generate id for {0:d} milliseconds", lastTimestamp - timestamp));
+                }
+                //如果是同一时间生成的，则自增
+                if (timestamp == lastTimestamp)
+                {
+                    sequence = (sequence + 1) & sequenceMask;
+                    if (sequence == 0)
+                    {
+                        //生成下一个毫秒级的序列  
+                        timestamp = TilNextMillis();
+                        //序列从0开始  
+                        sequence = 0L;
+                    }
+                }
+                else
+                {
+                    //如果发现是下一个时间单位，则自增序列回0，重新自增 
                     sequence = 0L;
                 }
-            }
-            else
-            {
-                //如果发现是下一个时间单位，则自增序列回0，重新自增 
-                sequence = 0L;
-            }
 
-            lastTimestamp = timestamp;
+                lastTimestamp = timestamp;
 
-            //看本文第二部分的结构图，移位并通过或运算拼到一起组成64位的ID
-            return ((timestamp - START_TIME) << TIMESTAMP_LEFT_SHIFT)
-                | (datacenterId << DATACENTER_ID_LEFT_SHIFT)
-                | (workerId << WORKER_ID_LEFT_SHIFT)
-                | sequence;
+                //看本文第二部分的结构图，移位并通过或运算拼到一起组成64位的ID
+                return ((timestamp - START_TIME) << TIMESTAMP_LEFT_SHIFT)
+                    | (datacenterId << DATACENTER_ID_LEFT_SHIFT)
+                    | (workerId << WORKER_ID_LEFT_SHIFT)
+                    | sequence;
+            }
         }
 
         protected long GenerateTime()
@@ -122,8 +128,12 @@ namespace Greedy.Dapper
         protected long TilNextMillis()
         {
             long timestamp = GenerateTime();
-            if (timestamp <= lastTimestamp)
+            short count = 0;
+            while (timestamp <= lastTimestamp)
             {
+                count++;
+                if (count > 10)
+                    throw new Exception("The time of this machine may be error");
                 timestamp = GenerateTime();
             }
             return timestamp;
