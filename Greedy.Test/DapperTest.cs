@@ -37,9 +37,13 @@ namespace Greedy.Test
     using System.Diagnostics;
     using System.Reflection;
 
-
-
     class Person : Human
+    {
+
+    }
+
+    [Table("my_person")]
+    class MyPerson : Human
     {
 
     }
@@ -152,6 +156,14 @@ namespace Greedy.Test
 
             var count = con.Update<Person>(person);
             Assert.AreEqual(1, count, "更新强类型实例失败");
+        }
+
+        [TestMethod]
+        public void TestUpdateAnonymousClassInstanceWithTableName()
+        {
+            var updatePerson = new { Id = 1, Age = 11 };
+            var count = con.Update<MyPerson>(updatePerson);
+            Assert.AreEqual(1, count, "更新匿名类型实例失败");
         }
 
         [TestMethod]

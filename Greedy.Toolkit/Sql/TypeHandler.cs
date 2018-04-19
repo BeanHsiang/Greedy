@@ -180,7 +180,7 @@ namespace Greedy.Toolkit.Sql
             var mapper = new TypeMapper()
             {
                 Name = target.Name,
-                TableName = target.Name,
+                TableName = target.TableName,
                 AllMembers = target.AllMembers.Intersect(source.AllMembers, MemberMapperComparer).ToList()
             };
             return mapper;
